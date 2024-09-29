@@ -1,0 +1,23 @@
+{
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone Number",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "register": "Register",
+    "requiredName": "Name is required",
+    "requiredLastName": "Last Name is required",
+    "invalidPhoneNumber": "Invalid phone number",
+    "invalidEmail": "Invalid email address",
+    "passwordLength": "Password must be at least 6 characters long",
+    "passwordMatch": "Passwords don't match",
+    "searchPlaceholder": "Search books...",
+    "termsAndConditions": "I agree to the Terms and Conditions",
+    "dataProcessing": "I consent to the processing of my personal data",
+    "registerFormTitle": "Register",
+    "loginFormTitle": "Login",
+    "login": "Login",
+    "cart" : "Cart"
+  }
+  

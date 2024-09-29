@@ -1,0 +1,22 @@
+{
+    "firstName": "Imię",
+    "lastName": "Nazwisko",
+    "phone": "Numer telefonu",
+    "email": "Email",
+    "password": "Hasło",
+    "confirmPassword": "Potwierdź hasło",
+    "register": "Zarejestruj się",
+    "requiredName": "Imię jest wymagane",
+    "requiredLastName": "Nazwisko jest wymagane",
+    "invalidPhoneNumber": "Nieprawidłowy numer telefonu",
+    "invalidEmail": "Nieprawidłowy adres email",
+    "passwordLength": "Hasło musi mieć co najmniej 6 znaków",
+    "passwordMatch": "Hasła nie pasują do siebie",
+    "searchPlaceholder": "Szukaj książek...",
+    "termsAndConditions": "Zgadzam się na Warunki i Zasady",
+    "dataProcessing": "Wyrażam zgodę na przetwarzanie moich danych osobowych",
+    "registerFormTitle": "Zarejestruj się",
+    "loginFormTitle": "Zaloguj się",
+    "login": "Zaloguj się",
+    "cart": "Koszyk"
+}
