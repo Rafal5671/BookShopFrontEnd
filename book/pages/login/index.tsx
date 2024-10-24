@@ -5,7 +5,7 @@ import Head from "next/head";
 
 export default function Login() {
   return (
-    <div className="bg-primary-200">
+    <div>
       <Head>
         <title>Online Bookstore Registration</title>
         <meta name="description" content="Register to our online bookstore" />

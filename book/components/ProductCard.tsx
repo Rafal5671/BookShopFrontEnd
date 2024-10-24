@@ -25,7 +25,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     router.push(`/product/1`);
   }
   return (
-    <Card className="max-w-sm shadow-lg hover:shadow-2xl transition-shadow duration-300 bg-primary-200">
+    <Card className="max-w-sm shadow-lg hover:shadow-2xl transition-shadow duration-300 bg-primary-100">
       <CardHeader className="flex justify-center items-center h-48 mt-4"  onClick={navigateToProductPage}>
         <Image
           className="w-full h-full object-contain"

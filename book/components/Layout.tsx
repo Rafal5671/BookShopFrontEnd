@@ -1,5 +1,3 @@
-// components/Layout.tsx
-
 import React from "react";
 import Navigation from "./Navigation"; // Import komponentu Navigation
 import Footer from "./Footer"; // Import komponentu Footer

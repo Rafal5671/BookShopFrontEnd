@@ -16,7 +16,7 @@ import {
   
 } from "@nextui-org/react";
 import { FaShoppingCart, FaUser, FaSearch, FaBars,FaCog,FaGlobe } from "react-icons/fa";
-import { useTranslation } from "../hooks/useTranslation"; // Assuming this is a custom hook for translation
+import { useTranslation } from "../hooks/useTranslation";
 import { ThemeSwitch } from './theme-switch';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -43,7 +43,7 @@ const Navigation = () => {
       maxWidth="xl"
       isBordered
       position="sticky"
-      className="bg-primary-100 opacity-95"
+      className="bg-primary-200 opacity-95"
     >
       {/* Large Screen Layout */}
       <NavbarBrand className="hidden lg:flex">
@@ -53,6 +53,7 @@ const Navigation = () => {
       </NavbarBrand>
       <NavbarContent className="hidden lg:flex">
         <Input
+          className="bg-primary-100" 
           radius="md"
           startContent={<FaSearch />}
           placeholder={t("searchPlaceholder")}
