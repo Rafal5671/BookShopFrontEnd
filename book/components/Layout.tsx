@@ -1,6 +1,6 @@
 import React from "react";
-import Navigation from "./Navigation"; // Import komponentu Navigation
-import Footer from "./Footer"; // Import komponentu Footer
+import Navigation from "./Navigation";
+import Footer from "./Footer";
 
 type LayoutProps = {
   children: React.ReactNode;

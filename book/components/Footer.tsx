@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
           {/* Sekcja o księgarni */}
           <div>
             <h4 className="text-white text-lg font-semibold mb-4">O naszej księgarni</h4>
-            <p className="text-gray-400">
+            <p className="text-white">
               Jesteśmy pasjonatami książek, oferujemy szeroki wybór literatury, od klasyków po nowości. Znajdziesz tu książki dla każdego.
             </p>
           </div>
@@ -19,22 +19,22 @@ const Footer: React.FC = () => {
             <h4 className="text-white text-lg font-semibold mb-4">Przydatne linki</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/" color="primary">
+                <Link href="/"  className="text-white">
                   Strona główna
                 </Link>
               </li>
               <li>
-                <Link href="/about" color="primary">
+                <Link href="/about" className="text-white">
                   O nas
                 </Link>
               </li>
               <li>
-                <Link href="/contact" color="primary">
+                <Link href="/contact" className="text-white">
                   Kontakt
                 </Link>
               </li>
               <li>
-                <Link href="/policy" color="primary">
+                <Link href="/policy" className="text-white">
                   Polityka prywatności
                 </Link>
               </li>
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
           {/* Sekcja kontaktowa */}
           <div>
             <h4 className="text-white text-lg font-semibold mb-4">Kontakt</h4>
-            <p className="text-gray-400">
+            <p className="text-white">
               <strong>Email:</strong> info@ksiegarnia.pl
               <br />
               <strong>Telefon:</strong> +48 123 456 789
@@ -55,7 +55,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="mt-10 text-center border-t border-gray-700 pt-4">
-          <p className="text-gray-500">
+          <p className="text-white">
             © {new Date().getFullYear()} Księgarnia. Wszelkie prawa zastrzeżone.
           </p>
         </div>

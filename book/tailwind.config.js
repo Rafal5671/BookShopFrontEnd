@@ -23,7 +23,10 @@ module.exports = {
             primary: {
               100: "#4F4557",
               200: "#6D5D6E",
-              DEFAULT: "#4F4557",
+              DEFAULT: "#F4EEE0",
+            },
+            secondary:{
+              DEFAULT:"#6D5D6E"
             },
             accent:"#F4EEE0",
           },
@@ -49,6 +52,9 @@ module.exports = {
               200: "#BF9365",
               DEFAULT: "#FFEAC5",
             },
+          },
+          secondary:{
+            DEFAULT:"#603F26"
           },
           accent:"#603F26",
           layout: {

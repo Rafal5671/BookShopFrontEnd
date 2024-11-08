@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -12,20 +12,24 @@ import {
   DropdownItem,
   Link,
   Badge,
-  Switch,
-  
+  Image
 } from "@nextui-org/react";
-import { FaShoppingCart, FaUser, FaSearch, FaBars,FaCog,FaGlobe } from "react-icons/fa";
+import {
+  FaShoppingCart,
+  FaUser,
+  FaSearch,
+  FaBars,
+} from "react-icons/fa";
 import { useTranslation } from "../hooks/useTranslation";
-import { ThemeSwitch } from './theme-switch';
-import LanguageSwitcher from './LanguageSwitcher';
+import { ThemeSwitch } from "./theme-switch";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navigation = () => {
-  const { t } = useTranslation(); // Added setLanguage to change language
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  
+
   useEffect(() => {
     const handleResize = () => {
       setIsMenuOpen(false);
@@ -45,31 +49,37 @@ const Navigation = () => {
       position="sticky"
       className="bg-primary-200 opacity-95"
     >
-      {/* Large Screen Layout */}
       <NavbarBrand className="hidden lg:flex">
-        <Link href="/">
-          <img alt="Bookstore Logo" style={{ height: "40px" }} />
+      <Link href="/">
+        <Image
+          alt="Bookstore Logo"
+          src="/logo3.png"
+          width={200}
+          height={200}
+        />
         </Link>
       </NavbarBrand>
       <NavbarContent className="hidden lg:flex">
         <Input
-          className="bg-primary-100" 
           radius="md"
+          color="default"
           startContent={<FaSearch />}
           placeholder={t("searchPlaceholder")}
         />
       </NavbarContent>
       <NavbarContent className="hidden lg:flex items-center">
-        <Badge content="5" color="primary" showOutline={false}>
+      <Link href="/cart">
+        <Badge content="5"className="bg-primary-100 rounded-full"  showOutline={false}>
           <Button isIconOnly>
-            <FaShoppingCart />
+            <FaShoppingCart size={20} />
           </Button>
         </Badge>
+        </Link>
         <Dropdown>
           <NavbarItem>
             <DropdownTrigger>
               <Button isIconOnly>
-                <FaUser />
+                <FaUser size={20} />
               </Button>
             </DropdownTrigger>
           </NavbarItem>
@@ -83,9 +93,7 @@ const Navigation = () => {
           </DropdownMenu>
         </Dropdown>
         <ThemeSwitch />
-        <LanguageSwitcher/>
-
-        {/* Theme switch is left unchanged */}
+        <LanguageSwitcher />
       </NavbarContent>
 
       {/* Small Screen Layout */}
@@ -131,16 +139,11 @@ const Navigation = () => {
               {/* Language Dropdown in Mobile Menu */}
               <Dropdown>
                 <DropdownTrigger>
-                  <Button>
-                  </Button>
+                  <Button></Button>
                 </DropdownTrigger>
                 <DropdownMenu>
-                  <DropdownItem key="en">
-                    English
-                  </DropdownItem>
-                  <DropdownItem key="pl">
-                    Polski
-                  </DropdownItem>
+                  <DropdownItem key="en">English</DropdownItem>
+                  <DropdownItem key="pl">Polski</DropdownItem>
                   {/* Add more languages as needed */}
                 </DropdownMenu>
               </Dropdown>

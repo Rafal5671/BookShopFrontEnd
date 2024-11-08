@@ -95,10 +95,30 @@ const RegisterForm: React.FC = () => {
     reset();
   }, [locale, reset]);
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    // Here you can add registration logic
+  const onSubmit = async (data: FormData) => {
+    try {
+      const response = await fetch('http://localhost:8080/api/customers/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Rejestracja nie powiodła się');
+      }
+  
+      const result = await response.json();
+      console.log('Użytkownik zarejestrowany:', result);
+      reset(); // Resetuj formularz po pomyślnej rejestracji
+      // Możesz tutaj dodać logikę po pomyślnej rejestracji, np. przekierowanie użytkownika
+    } catch (error) {
+      console.error('Błąd rejestracji:', error);
+      // Możesz wyświetlić komunikat o błędzie użytkownikowi
+    }
   };
+  
 
   return (
     <div className="h-auto flex items-center justify-center p-4">
@@ -209,7 +229,7 @@ const RegisterForm: React.FC = () => {
             </Checkbox>
           </div>
           <Spacer y={1.5} />
-          <Button className="bg-primary-500" type="submit" size="lg" fullWidth>
+          <Button className="bg-primary-200" type="submit" size="lg" fullWidth>
             {t("register")}
           </Button>
         </form>

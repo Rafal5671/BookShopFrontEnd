@@ -1,12 +1,11 @@
-// pages/product/[id].tsx
-
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import { Button } from '@nextui-org/button';
 import { Image } from '@nextui-org/image';
-import { AiOutlineStar, AiFillStar } from 'react-icons/ai';
+import { AiOutlineStar } from 'react-icons/ai';
 import { FaStarHalfAlt, FaStar } from 'react-icons/fa';
 import { AiOutlineShoppingCart } from "react-icons/ai";
+import { Card } from '@nextui-org/react';
 
 type Product = {
   id: string;
@@ -31,117 +30,105 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
     return <div className="text-center text-foreground">Loading...</div>;
   }
 
-  // Ustawienie domyślnej wartości dla reviews, jeśli nie jest zdefiniowana
   const { reviews = [] } = product;
 
-  // Funkcja renderująca gwiazdki na podstawie oceny
   const renderStars = (rating: number) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       if (i <= rating) {
-        stars.push(<FaStar key={i} className="text-accent text-4xl" />); // Powiększone gwiazdki
+        stars.push(<FaStar key={i} className="text-accent text-2xl" />);
       } else if (i === Math.ceil(rating) && !Number.isInteger(rating)) {
-        stars.push(<FaStarHalfAlt key={i} className="text-accent text-4xl" />); // Powiększone pół-gwiazdki
+        stars.push(<FaStarHalfAlt key={i} className="text-accent text-2xl" />);
       } else {
-        stars.push(<AiOutlineStar key={i} className="text-accent text-4xl" />); // Powiększone puste gwiazdki
+        stars.push(<AiOutlineStar key={i} className="text-accent text-2xl" />);
       }
     }
     return stars;
   };
 
   return (
-    <div className="py-12 px-4 md:px-12 bg-primary-dark text-primary-light dark:bg-primary-light dark:text-primary-dark">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Obrazek książki */}
-        <div className="flex justify-center items-center">
-          <Image
-            src={product.image || 'https://via.placeholder.com/300x400.png?text=Brak+zdjęcia'}
-            alt={product.name}
-            width={300}
-            height={400}
-            className="rounded-lg shadow-lg"
-          />
-        </div>
-        
-        {/* Informacje o książce */}
-        <div className="flex flex-col gap-4">
-          <h1 className="text-3xl font-bold">
-            {product.name}
-          </h1>
-          <div className="flex items-center gap-2">
-            <div className="flex">{renderStars(product.rating)}</div>
-            <span className="text-secondary-light dark:text-secondary-dark">
-              {product.rating} na 5
-            </span>
+    <div className="mt-5 mb-5 px-4 md:px-12">
+      <Card className="w-full mx-auto p-6 bg-primary-200 shadow-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Column with Book Image */}
+          <div className="flex justify-center items-center">
+            <Image
+              src={product.image || 'https://via.placeholder.com/500x600.png?text=Brak+zdjęcia'}
+              alt={product.name}
+              width={400}
+              height={500}
+              className="rounded-lg shadow-lg transition-transform duration-300 hover:scale-105"
+            />
           </div>
-          <p className="text-secondary-light dark:text-secondary-dark">
-            {product.description || 'Brak opisu dla tej książki.'}
+
+          {/* Column with Book Details */}
+          <div className="flex flex-col gap-4 justify-center">
+            <h1 className="text-3xl font-bold">{product.name}</h1>
+            <div className="flex items-center gap-2">
+              <div className="flex">{renderStars(product.rating)}</div>
+              <span className="text-secondary-light dark:text-secondary-dark">{product.rating} na 5</span>
+            </div>
+            <p className="text-secondary-light dark:text-secondary-dark">
+              {product.description || 'Brak opisu dla tej książki.'}
+            </p>
+            <div className="text-xl font-bold text-price-light dark:text-price-dark">
+              {product.discountedPrice ? (
+                <>
+                  <span className="line-through">{product.price} PLN</span>{' '}
+                  <span className="text-accent">{product.discountedPrice} PLN</span>
+                </>
+              ) : (
+                <span>{product.price} PLN</span>
+              )}
+            </div>
+            <Button
+              className="mt-4 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center gap-2 transition-colors duration-300"
+              onClick={() => alert('Dodano do koszyka!')}
+            >
+              <AiOutlineShoppingCart size={20} />
+              Dodaj do koszyka
+            </Button>
+          </div>
+        </div>
+
+        {/* Detailed Description Section */}
+        <div className="mt-12 p-6 bg-primary-200 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">Szczegółowy Opis</h2>
+          <p>
+            {product.detailedDescription || 'Brak szczegółowego opisu.'}
           </p>
-          <div className="text-xl font-bold text-price-light dark:text-price-dark">
-            {product.discountedPrice ? (
-              <>
-                <span className="line-through text-secondary-light dark:text-secondary-dark">{product.price} PLN</span>{' '}
-                <span className="text-accent">{product.discountedPrice} PLN</span>
-              </>
-            ) : (
-              <span>{product.price} PLN</span>
-            )}
-          </div>
-          <Button className="mt-4 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center gap-2 transition-colors duration-300"
-          onClick={() => alert('Dodano do koszyka!')}>
-            <AiOutlineShoppingCart size={20} />
-            Dodaj do koszyka
-          </Button>
         </div>
-      </div>
 
-      {/* Sekcja ze szczegółowym opisem */}
-      <div className="mt-12 p-6 bg-darker-secondary-dark dark:bg-darker-secondary-light rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">
-          Szczegółowy Opis
-        </h2>
-        <p className="text-primary-light dark:text-primary-dark">
-          {product.detailedDescription || 'Brak szczegółowego opisu.'}
-        </p>
-      </div>
-
-      {/* Sekcja recenzji klientów */}
-      <div className="mt-12 p-6 bg-primary-950 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">
-          Recenzje klientów
-        </h2>
-        {reviews.length > 0 ? (
-          <div className="space-y-6">
-            {reviews.map((review, index) => (
-              <div key={index} className="border-b border-secondary-light dark:border-secondary-dark pb-4 mb-4 text-primary-light dark:text-primary-dark">
-                <h3 className="font-semibold text-lg">
-                  {review.user}
-                </h3>
-                <p>{review.content}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-primary-light dark:text-primary-dark">Brak recenzji.</p>
-        )}
-      </div>
+        {/* Customer Reviews Section */}
+        <div className="mt-12 p-6 bg-primary-200 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">Recenzje klientów</h2>
+          {reviews.length > 0 ? (
+            <div className="space-y-6">
+              {reviews.map((review, index) => (
+                <div key={index} className="border-b pb-4 mb-4">
+                  <h3 className="font-semibold text-lg">{review.user}</h3>
+                  <p>{review.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>Brak recenzji.</p>
+          )}
+        </div>
+      </Card>
     </div>
   );
 };
 
-// Pobieranie ścieżek dla dynamicznego routingu
+// Dynamic Routing Paths
 export const getStaticPaths: GetStaticPaths = async () => {
-  // Przykładowe dane ścieżek produktów, zamień na swoje dane
   const paths = [{ params: { id: '1' } }, { params: { id: '2' } }];
-
   return { paths, fallback: true };
 };
 
-// Pobieranie danych produktu na podstawie ID
+// Fetch Product Data Based on ID
 export const getStaticProps: GetStaticProps = async (context) => {
   const { id } = context.params!;
-
-  // Przykładowe dane produktu, zamień na rzeczywiste zapytanie do API lub bazy danych
   const product = {
     id,
     name: 'Przykładowa Książka',
@@ -149,7 +136,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
     price: 49.99,
     discountedPrice: 39.99,
     description: 'To jest przykładowy opis książki.',
-    detailedDescription: 'To jest bardziej szczegółowy opis książki, w którym można dodać więcej informacji, takich jak historia powstawania, opinie krytyków literackich, czy ogólne wrażenia z lektury.',
+    detailedDescription: 'To jest bardziej szczegółowy opis książki...',
     rating: 4.5,
     reviews: [
       { user: 'Jan Kowalski', content: 'Świetna książka, bardzo polecam!' },
@@ -159,7 +146,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
 
   return {
     props: { product },
-    revalidate: 60, // Rewalidacja danych co 60 sekund
+    revalidate: 60,
   };
 };
 

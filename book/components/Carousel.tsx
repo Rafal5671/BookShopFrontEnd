@@ -5,11 +5,8 @@ import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import {Button} from "@nextui-org/button";
 
 const images = [
-    { label: 'Księgarnia', imgPath: 'https://cdn.x-kom.pl/i/img/banners/1442x316,,aee88df8bcdb4db7b17d72decbbd0007.jpg?filters=trim' },
-    { label: 'Księgarnia 2', imgPath: 'https://cdn.x-kom.pl/i/img/banners/1442x316,,43b8998268324ef499e66efb88c4f008.jpg?filters=trim' },
-    { label: 'Księgarnia 3', imgPath: 'https://cdn.x-kom.pl/i/img/banners/1442x316,,aee88df8bcdb4db7b17d72decbbd0007.jpg?filters=trim' },
-    { label: 'Księgarnia 4', imgPath: 'https://cdn.x-kom.pl/i/img/banners/1442x316,,43b8998268324ef499e66efb88c4f008.jpg?filters=trim' },
-    { label: 'Księgarnia 5', imgPath: 'https://cdn.x-kom.pl/i/img/banners/1442x316,,aee88df8bcdb4db7b17d72decbbd0007.jpg?filters=trim' },
+    { label: 'Księgarnia', imgPath: '/slide1.png' },
+    { label: 'Księgarnia 2', imgPath: '/slide2.png' },
 ];
 
 const ImageCarousel: React.FC = () => {

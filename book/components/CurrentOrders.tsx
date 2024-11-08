@@ -1,9 +1,8 @@
-// components/CurrentOrders.tsx
 import { Card } from '@nextui-org/react';
 
 const CurrentOrders = () => {
   return (
-    <Card className="p-4 mb-4">
+    <Card className="p-4 mb-4  bg-primary-100">
       <h4 className="text-lg font-semibold mb-2">Current Orders</h4>
       <div>
         {/* Sample current order */}

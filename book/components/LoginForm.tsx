@@ -42,9 +42,27 @@ const LoginForm: React.FC = () => {
     reset();
   }, [locale, reset]);
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    // Here you can add login logic
+  const onSubmit = async (data: FormData) => {
+    try {
+      const response = await fetch('http://localhost:8080/api/customers/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Logowanie nie powiodło się');
+      }
+
+      const result = await response.json();
+      console.log('Użytkownik zalogowany:', result);
+      // Możesz tutaj dodać logikę po pomyślnym logowaniu, np. przekierowanie użytkownika
+    } catch (error) {
+      console.error('Błąd logowania:', error);
+      // Możesz wyświetlić komunikat o błędzie użytkownikowi
+    }
   };
 
   return (
@@ -80,7 +98,7 @@ const LoginForm: React.FC = () => {
             />
           </div>
           <Spacer y={1.5} />
-          <Button className="bg-gray-500" type="submit" size="lg" fullWidth>
+          <Button className="bg-primary-200" type="submit" size="lg" fullWidth>
             {t('login')}
           </Button>
         </form>

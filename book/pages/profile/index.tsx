@@ -1,4 +1,3 @@
-// pages/profile.tsx
 import { NextPage } from 'next';
 import UserProfile from '@/components/UserProfile';
 import OrderHistory from '@/components/OrderHistory';

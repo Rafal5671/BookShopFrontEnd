@@ -1,8 +1,6 @@
 import Head from "next/head";
-import Navigation from "../components/Navigation";
 import ImageCarousel from "@/components/Carousel";
 import ProductCard from "@/components/ProductCard";
-import Footer from "@/components/Footer";
 const products = [
   {
     name: "Mistrz i Małgorzata",
