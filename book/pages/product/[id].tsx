@@ -53,7 +53,7 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
           {/* Column with Book Image */}
           <div className="flex justify-center items-center">
             <Image
-              src={product.image || 'https://via.placeholder.com/500x600.png?text=Brak+zdjęcia'}
+              src={'https://via.placeholder.com/500x600.png?text=Brak+zdjęcia'}
               alt={product.name}
               width={400}
               height={500}
@@ -68,9 +68,12 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
               <div className="flex">{renderStars(product.rating)}</div>
               <span className="text-secondary-light dark:text-secondary-dark">{product.rating} na 5</span>
             </div>
-            <p className="text-secondary-light dark:text-secondary-dark">
-              {product.description || 'Brak opisu dla tej książki.'}
-            </p>
+            {/* Display Description as Bullet Points */}
+            <ul className="text-secondary-light dark:text-secondary-dark">
+              {product.description?.split(',').map((item, index) => (
+                <li key={index} className="mb-2">• {item.trim()}</li>
+              ))}
+            </ul>
             <div className="text-xl font-bold text-price-light dark:text-price-dark">
               {product.discountedPrice ? (
                 <>
@@ -130,17 +133,17 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async (context) => {
   const { id } = context.params!;
   const product = {
-    id,
-    name: 'Przykładowa Książka',
-    image: 'https://via.placeholder.com/300x400.png?text=Książka',
-    price: 49.99,
-    discountedPrice: 39.99,
-    description: 'To jest przykładowy opis książki.',
-    detailedDescription: 'To jest bardziej szczegółowy opis książki...',
-    rating: 4.5,
+    id: 1,  // Unique identifier for the product
+    name: 'Mistrz i Małgorzata',  // Title of the book
+    image: 'https://via.placeholder.com/300x400.png?text=Książka',  // Placeholder image for the book cover
+    price: 50.00,  // Original price of the book
+    discountedPrice: 35.00,  // Price after discount
+    description: 'Liczba stron: 448, Wydawnictwo: Muza, Oprawa: Twarda, Data wydania: 1967',  // Basic details about the book
+    detailedDescription: 'Mistrz i Małgorzata to jedna z najważniejszych powieści Michaiła Bułhakowa, która łączy elementy realizmu, magii i filozoficznych rozważań na temat władzy, wolności, miłości oraz religii. Historia rozgrywa się w Moskwie lat 30. XX wieku, gdzie tajemniczy Woland, przedstawiciel sił nadprzyrodzonych, wraz ze swoją świtą, wywołuje chaos. Główne postacie to Mistrz, pisarz, który stworzył książkę o Piłacie, oraz jego ukochana Małgorzata, która za pomocą nadprzyrodzonych mocy stara się uratować Mistrza. Powieść jest pełna symboliki i niezwykłych wydarzeń, które zmuszają do głębokich refleksji nad naturą ludzką i światem.' ,  // More detailed description of the book
+    rating: 4.5,  // Average rating from readers
     reviews: [
-      { user: 'Jan Kowalski', content: 'Świetna książka, bardzo polecam!' },
-      { user: 'Anna Nowak', content: 'Bardzo ciekawa, wciągnęła mnie od pierwszych stron.' },
+      { user: 'Jan Kowalski', content: 'Niezwykła książka, która łączy elementy fantastyczne z głębokimi refleksjami na temat ludzkiej natury. Polecam!' },  // Review by Jan Kowalski
+      { user: 'Anna Nowak', content: 'Książka, która wciąga od pierwszych stron. Świetnie napisana i pełna tajemnic, które sprawiają, że nie można się od niej oderwać.' },  // Review by Anna Nowak
     ],
   };
 

@@ -122,7 +122,7 @@ const RegisterForm: React.FC = () => {
 
   return (
     <div className="h-auto flex items-center justify-center p-4">
-      <Card className="max-w-lg w-full p-8 shadow-lg rounded-xl bg-primary-100">
+      <Card className="max-w-xl w-full p-8 shadow-lg rounded-xl bg-primary-100">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6">
           <h1 className="text-3xl font-semibold text-center mb-2">{t("registerFormTitle")}</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
