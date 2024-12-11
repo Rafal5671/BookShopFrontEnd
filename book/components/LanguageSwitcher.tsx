@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { Dropdown,DropdownTrigger,DropdownMenu,DropdownItem } from '@nextui-org/react';
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/react';
 import { FaGlobe } from 'react-icons/fa';
 
 const LanguageSwitcher: React.FC = () => {
@@ -7,7 +7,14 @@ const LanguageSwitcher: React.FC = () => {
   const { locale } = router;
 
   const changeLanguage = (lang: string) => {
-    router.push(router.pathname, router.asPath, { locale: lang });
+    // Zapamiętaj bieżącą pozycję przewinięcia
+    const scrollPosition = window.scrollY;
+
+    // Zmień język bez odświeżania strony na górę
+    router.push(router.pathname, router.asPath, { locale: lang }).then(() => {
+      // Przewiń do poprzedniej pozycji po zmianie języka
+      window.scrollTo(0, scrollPosition);
+    });
   };
 
   return (

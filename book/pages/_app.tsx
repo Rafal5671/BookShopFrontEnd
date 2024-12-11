@@ -10,16 +10,15 @@ import Layout from "../components/Layout";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const isCartPage = router.pathname === "/cart";
 
   return (
     <NextUIProvider navigate={router.push}>
       <NextThemesProvider>
-        <Layout>
-          <CartProvider>
+        <CartProvider>
+          <Layout>
             <Component {...pageProps} />
-          </CartProvider>
-        </Layout>
+          </Layout>
+        </CartProvider>
       </NextThemesProvider>
     </NextUIProvider>
   );

@@ -20,16 +20,20 @@ import {
   FaSearch,
   FaBars,
 } from "react-icons/fa";
+
 import { useTranslation } from "../hooks/useTranslation";
+import { useCart } from "@/hooks/CartContext";
 import { ThemeSwitch } from "./theme-switch";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navigation = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
+  const handleLogout = () => {
+    localStorage.removeItem("authToken"); // Usuń token JWT
+    //setIsLoggedIn(false);
+  };
   useEffect(() => {
     const handleResize = () => {
       setIsMenuOpen(false);
@@ -41,39 +45,54 @@ const Navigation = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
+  const { cartItemCount } = useCart();
+  // Determine the badge content based on cartItemCount
+  let badgeContent = "";
+  if (cartItemCount > 99) {
+    badgeContent = "99+";
+  } else if (cartItemCount > 0) {
+    badgeContent = cartItemCount.toString();
+  }
+  const shouldShowBadge = cartItemCount > 0 && cartItemCount <= 99;
   return (
     <Navbar
-      maxWidth="xl"
       isBordered
-      position="sticky"
       className="bg-primary-200 opacity-95"
+      maxWidth="xl"
+      position="sticky"
     >
       <NavbarBrand className="hidden lg:flex">
       <Link href="/">
         <Image
           alt="Bookstore Logo"
+          height={200}
           src="/logo3.png"
           width={200}
-          height={200}
         />
         </Link>
       </NavbarBrand>
       <NavbarContent className="hidden lg:flex">
         <Input
-          radius="md"
           color="default"
-          startContent={<FaSearch />}
           placeholder={t("searchPlaceholder")}
+          radius="md"
+          startContent={<FaSearch />}
         />
       </NavbarContent>
       <NavbarContent className="hidden lg:flex items-center">
       <Link href="/cart">
-        <Badge content="5"className="bg-primary-100 rounded-full"  showOutline={false}>
-          <Button isIconOnly>
-            <FaShoppingCart size={20} />
-          </Button>
-        </Badge>
+          {/* Show badge if shouldShowBadge is true */}
+          {shouldShowBadge ? (
+            <Badge className="bg-primary-100 rounded-full" content={badgeContent} showOutline={false}>
+              <Button isIconOnly>
+                <FaShoppingCart size={20} />
+              </Button>
+            </Badge>
+          ) : (
+            <Button isIconOnly>
+              <FaShoppingCart size={20} />
+            </Button>
+          )}
         </Link>
         <Dropdown>
           <NavbarItem>
@@ -90,6 +109,9 @@ const Navigation = () => {
             <DropdownItem key="register" href="/register">
               Register
             </DropdownItem>
+            <DropdownItem key="logout" onClick={handleLogout}>
+                  Logout
+                </DropdownItem>
           </DropdownMenu>
         </Dropdown>
         <ThemeSwitch />
@@ -99,10 +121,10 @@ const Navigation = () => {
       {/* Small Screen Layout */}
       <NavbarContent className="flex lg:hidden w-full justify-between items-center px-2">
         <Input
+          className="flex-grow mr-2"
+          placeholder={t("searchPlaceholder")}
           radius="md"
           startContent={<FaSearch />}
-          placeholder={t("searchPlaceholder")}
-          className="flex-grow mr-2"
         />
         <Button isIconOnly onPress={toggleMenu}>
           <FaBars />
@@ -121,16 +143,16 @@ const Navigation = () => {
             </li>
             <li className="w-full mb-2">
               <a
-                href="/login"
                 className="block py-2 px-4 text-gray-900 rounded bg-gray-50 hover:bg-gray-100 md:bg-transparent md:hover:bg-transparent md:hover:text-blue-700 md:text-gray-900 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                href="/login"
               >
                 {t("login")}
               </a>
             </li>
             <li className="w-full mb-2">
               <a
-                href="/register"
                 className="block py-2 px-4 text-gray-900 rounded bg-gray-50 hover:bg-gray-100 md:bg-transparent md:hover:bg-transparent md:hover:text-blue-700 md:text-gray-900 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                href="/register"
               >
                 {t("register")}
               </a>
@@ -139,7 +161,7 @@ const Navigation = () => {
               {/* Language Dropdown in Mobile Menu */}
               <Dropdown>
                 <DropdownTrigger>
-                  <Button></Button>
+                  <Button />
                 </DropdownTrigger>
                 <DropdownMenu>
                   <DropdownItem key="en">English</DropdownItem>

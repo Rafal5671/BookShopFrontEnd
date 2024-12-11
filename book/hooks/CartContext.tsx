@@ -1,11 +1,15 @@
 import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 
 type Product = {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
+  bookId: number;
+  titlePl: string;
+  titleEn: string;
   image?: string;
+  pages_count: number;
+  relese_year: number;
+  price: number;
+  discountedPrice?: number;
+  quantity: number;
 };
 
 type CartContextType = {
@@ -14,6 +18,7 @@ type CartContextType = {
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
+  cartItemCount:number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -37,7 +42,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
-      setCart(JSON.parse(storedCart)); // Load the cart from localStorage
+      try {
+        setCart(JSON.parse(storedCart)); // Load the cart from localStorage
+      } catch (error) {
+        console.error("Error parsing cart data from localStorage:", error);
+        setCart([]); // Clear the cart if there's an error in parsing
+      }
     }
   }, []);
 
@@ -50,25 +60,35 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
-      const existingProduct = prevCart.find((p) => p.id === product.id);
+      const updatedCart = [...prevCart];
+      const existingProduct = updatedCart.find((p) => p.bookId === product.bookId);
+
       if (existingProduct) {
-        return prevCart.map((p) =>
-          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
-        );
+        // If product exists, update quantity
+        existingProduct.quantity += 1;
       } else {
-        return [...prevCart, { ...product, quantity: 1 }];
+        // Add new product to the cart
+        updatedCart.push({ ...product, quantity: 1 });
       }
+
+      // Update localStorage
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+      return updatedCart;
     });
   };
 
   const removeFromCart = (productId: number) => {
-    setCart((prevCart) => prevCart.filter((product) => product.id !== productId));
+    setCart((prevCart) => prevCart.filter((product) => product.bookId !== productId));
   };
 
   const updateQuantity = (productId: number, quantity: number) => {
+    // Prevent quantity from being less than 1
+    if (quantity < 1) return;
+
     setCart((prevCart) =>
       prevCart.map((product) =>
-        product.id === productId ? { ...product, quantity } : product
+        product.bookId === productId ? { ...product, quantity } : product
       )
     );
   };
@@ -78,8 +98,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     localStorage.removeItem("cart"); // Remove cart from localStorage if it's cleared
   };
 
+  // Calculate the total number of items in the cart
+  const cartItemCount = cart.reduce((total, product) => total + product.quantity, 0);
+
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart }}>
+    <CartContext.Provider value={{ cart, cartItemCount, addToCart, removeFromCart, updateQuantity, clearCart }}>
       {children}
     </CartContext.Provider>
   );

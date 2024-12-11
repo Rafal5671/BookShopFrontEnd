@@ -12,6 +12,7 @@
 		"@hookform/resolvers": "^3.6.0",
 		"@nextui-org/react": "2.4.2",
 		"@react-aria/visually-hidden": "3.8.12",
+		"@react-google-maps/api": "^2.20.3",
 		"@types/node": "20.5.7",
 		"@types/react": "18.3.3",
 		"@types/react-dom": "18.3.0",
@@ -20,7 +21,7 @@
 		"autoprefixer": "10.4.19",
 		"clsx": "2.0.0",
 		"eslint": "^8.26.0",
-		"eslint-config-prettier": "^8.2.0",
+		"eslint-config-prettier": "^8.10.0",
 		"eslint-plugin-import": "^2.26.0",
 		"eslint-plugin-jsx-a11y": "^6.4.1",
 		"eslint-plugin-node": "^11.1.0",
@@ -30,6 +31,8 @@
 		"eslint-plugin-unused-imports": "^3.2.0",
 		"framer-motion": "~11.1.1",
 		"intl-messageformat": "^10.5.0",
+		"jwt-decode": "^4.0.0",
+		"leaflet": "^1.9.4",
 		"next": "14.2.1",
 		"next-themes": "^0.2.1",
 		"postcss": "8.4.38",
@@ -37,11 +40,15 @@
 		"react-dom": "18.3.1",
 		"react-hook-form": "^7.52.0",
 		"react-icons": "^5.2.1",
+		"react-leaflet": "^4.2.1",
 		"react-responsive-carousel": "^3.2.23",
 		"styled-components": "^6.1.11",
 		"tailwind-variants": "0.1.20",
 		"tailwindcss": "3.4.3",
 		"typescript": "5.0.4",
 		"zod": "^3.23.8"
+	},
+	"devDependencies": {
+		"@types/leaflet": "^1.9.14"
 	}
 }

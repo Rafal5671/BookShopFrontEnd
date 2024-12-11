@@ -3,30 +3,37 @@ import { Card, CardHeader, CardBody, CardFooter } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
 import { Image } from "@nextui-org/image";
 import { AiOutlineShoppingCart } from "react-icons/ai";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 import { useCart } from "@/hooks/CartContext";
 
 type Product = {
-  id: number;
-  name: string;
+  bookId: number;
+  titlePl: string;
+  titleEn: string;
   image?: string;
+  pages_count: number;
+  relese_year: number;
   price: number;
   discountedPrice?: number;
+    staticImage?: string;
 };
-
 type ProductCardProps = {
   product: Product;
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { name, image, price, discountedPrice, id } = product;
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+}: ProductCardProps) => {
+  const { image, price, discountedPrice, bookId } = product;
+  const { locale } = useRouter();
+  const title = locale === "en" ? product.titleEn : product.titlePl;
   const router = useRouter();
   const { addToCart } = useCart(); // Use the cart context to add items to the cart
 
-  const imageUrl = image || "https://via.placeholder.com/300x200.png?text=Brak+zdjęcia";
+  const imageUrl = "/mistrz.jpg";
 
   const navigateToProductPage = () => {
-    router.push(`/product/${id}`);
+    router.push(`/product/${bookId}`);
   };
 
   const handleAddToCart = () => {
@@ -34,17 +41,35 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <Card className="max-w-sm shadow-lg hover:shadow-2xl transition-shadow duration-300 bg-primary-100">
-      <CardHeader className="flex justify-center items-center h-48 mt-4" onClick={navigateToProductPage}>
+    <Card className="w-[300px] shadow-lg hover:shadow-2xl transition-shadow duration-300 bg-primary-100">
+      <CardHeader
+        className="flex justify-center items-center h-48 mt-4"
+        onClick={navigateToProductPage}
+      >
+        {product.staticImage ? (
+     <Image
+     className="w-[200px] h-[200px] object-contain"
+     src={product.staticImage}
+     alt={title}
+   />
+      ) : (
         <Image
-          className="w-full h-full object-contain"
+          className="w-[200px] h-[200px] object-contain"
           src={imageUrl}
-          alt={name}
+          alt={title}
         />
+      )}
       </CardHeader>
 
       <CardBody className="px-6 py-2">
-        <div className="font-bold text-xl mb-2 text-center" onClick={navigateToProductPage}>{name}</div>
+        <button
+          className="font-bold text-xl mb-2 text-center"
+          onClick={navigateToProductPage}
+          aria-label="Navigate to product page"
+        >
+          {title}
+        </button>
+
         <p className="text-base text-center">
           <span
             className={`${

@@ -1,48 +1,61 @@
+import React, { useEffect } from "react";
 import { Button, Image, Input } from "@nextui-org/react";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaMinus, FaPlus } from "react-icons/fa";
 import { useCart } from "@/hooks/CartContext";
-
-export default function Cart() {
-  const { cart, addToCart, removeFromCart, updateQuantity } = useCart();
-
-  // Calculate the total price dynamically
+import { useRouter } from "next/router"; 
+const Cart = () => {
+  const { cart, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const router = useRouter();
+  const handleGoToDelivery = () => {
+    router.push("/delivery"); // Przekierowanie do strony dostawy
+  };
+  // Obliczanie łącznej ceny
   const totalPrice = cart
     .reduce((total, product) => total + product.price * product.quantity, 0)
     .toFixed(2);
 
-  // Handlers for quantity change
+  // Obsługuje zwiększanie ilości
   const increaseQuantity = (id: number) => {
-  const product = cart.find((product) => product.id === id);
-  if (product) {
-    updateQuantity(id, Math.min(product.quantity + 1, 99)); // Safely access quantity
-  }
-};
+    const product = cart.find((product) => product.bookId === id);
+    if (product) {
+      updateQuantity(id, Math.min(product.quantity + 1, 99));
+    }
+  };
 
-
+  // Obsługuje zmniejszanie ilości
   const decreaseQuantity = (id: number) => {
-    const product = cart.find((product) => product.id === id);
+    const product = cart.find((product) => product.bookId === id);
     if (product && product.quantity > 1) {
       updateQuantity(id, product.quantity - 1);
     }
   };
 
+  // Funkcja do obsługi zmiany ilości w inpucie
   const handleQuantityChange = (id: number, value: string) => {
-    // Allow empty input
+    // Pozwól na puste pole
     if (value === "" || /^[0-9]*$/.test(value)) {
-      const quantity = value === "" ? 1 : Math.min(parseInt(value, 10), 99); // Allow empty, set to 1, cap at 99
+      const quantity = value === "" ? 1 : Math.min(parseInt(value, 10), 99);
       updateQuantity(id, quantity);
     }
   };
 
+  // Funkcja do obsługi utraty focusa
   const handleBlur = (id: number, value: string) => {
-    // If the input is empty, set the quantity to 1
     if (value === "") {
-      updateQuantity(id, 1); // Set to 1 if empty
+      updateQuantity(id, 1);
     } else {
-      const quantity = Math.min(parseInt(value, 10), 99); // Ensure it does not exceed 99
+      const quantity = Math.min(parseInt(value, 10), 99);
       updateQuantity(id, quantity);
     }
   };
+
+  // Sprawdź produkty w koszyku i wyświetl je w konsoli przy renderowaniu
+  useEffect(() => {
+    console.log("Produkty w koszyku:");
+    cart.forEach((product) => {
+      console.log(`Produkt: ${product.titlePl}, Ilość: ${product.quantity}`);
+    });
+  }, [cart]); // useEffect wywołuje się, gdy koszyk się zmienia
 
   return (
     <div className="my-10 flex justify-center w-full">
@@ -54,48 +67,48 @@ export default function Cart() {
           ) : (
             cart.map((product) => (
               <div
-                key={product.id}
+                key={product.bookId}
                 className="flex mb-4 p-4 border-b border-gray-200 items-center"
               >
-                {/* Product Image */}
+                {/* Wyświetlanie obrazu produktu */}
                 <div className="flex-shrink-0">
                   <Image
-                    src={product.image}
-                    alt={product.name}
-                    className="w-24 h-24 object-cover"
-                  />
+  src={product.titlePl === "Ziemia obiecana" ? "/ziemia.jpg" : "/wielki.jpg"}
+  alt={product.titlePl}
+  className="w-24 h-24 object-containt"
+/>
+
                 </div>
 
-                {/* Product Details */}
+                {/* Szczegóły produktu */}
                 <div className="flex-1 flex flex-col ml-4">
-                  <span className="text-lg font-bold">{product.name}</span>
-                  <span className="text-lg text-gray-400">Cena za sztukę: {product.price.toFixed(2)} zł</span>
+                  <span className="text-lg font-bold">{product.titlePl}</span>
+                  <span className="text-lg text-gray-400">
+                    Cena za sztukę: {product.price.toFixed(2)} zł
+                  </span>
 
-                  {/* Price and Quantity Controls */}
+                  {/* Cena i kontrolki ilości */}
                   <div className="flex items-center mt-2 justify-between">
                     <span className="text-lg">
-                      Cena produktów: {(product.price * product.quantity).toFixed(2)} zł
+                      Cena produktów:{" "}
+                      {(product.price * product.quantity).toFixed(2)} zł
                     </span>
                     <div className="flex items-center">
                       {product.quantity > 1 ? (
-                        <>
-                          <Button
-                            onClick={() => decreaseQuantity(product.id)}
-                            className="mr-2"
-                            size="sm"
-                          >
-                            -
-                          </Button>
-                        </>
-                      ) : (
                         <Button
-                          onClick={() => removeFromCart(product.id)}
+                          onClick={() => decreaseQuantity(product.bookId)}
                           className="mr-2"
                           size="sm"
                         >
-                          <span role="img" aria-label="trash">
-                            <FaTrash />
-                          </span>
+                          <FaMinus />
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => removeFromCart(product.bookId)}
+                          className="mr-2"
+                          size="sm"
+                        >
+                          <FaTrash />
                         </Button>
                       )}
                       <Input
@@ -103,19 +116,19 @@ export default function Cart() {
                         size="sm"
                         value={String(product.quantity)}
                         onChange={(e) =>
-                          handleQuantityChange(product.id, e.target.value)
+                          handleQuantityChange(product.bookId, e.target.value)
                         }
                         onBlur={() =>
-                          handleBlur(product.id, String(product.quantity))
+                          handleBlur(product.bookId, String(product.quantity))
                         }
                         className="w-16 text-center border border-gray-600 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <Button
-                        onClick={() => increaseQuantity(product.id)}
+                        onClick={() => increaseQuantity(product.bookId)}
                         className="ml-2"
                         size="sm"
                       >
-                        +
+                        <FaPlus />
                       </Button>
                     </div>
                   </div>
@@ -130,9 +143,17 @@ export default function Cart() {
             <span className="text-lg font-semibold">Łączna cena:</span>
             <span className="text-2xl font-bold">{totalPrice} zł</span>
           </div>
-          <Button className="bg-green-500">Wybierz sposób dostawy</Button>
+          <Button className="bg-green-500" onClick={handleGoToDelivery}>Wybierz sposób dostawy</Button>
+          <Button
+            onClick={clearCart}
+            className="mt-2 bg-red-500"
+          >
+            Wyczyść koszyk
+          </Button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Cart;
