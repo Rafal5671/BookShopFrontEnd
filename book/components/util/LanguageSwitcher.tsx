@@ -4,15 +4,19 @@ import { FaGlobe } from 'react-icons/fa';
 
 const LanguageSwitcher: React.FC = () => {
   const router = useRouter();
-  const { locale } = router;
+  const { locale, locales, pathname, query } = router;
 
   const changeLanguage = (lang: string) => {
-    // Zapamiętaj bieżącą pozycję przewinięcia
     const scrollPosition = window.scrollY;
 
-    // Zmień język bez odświeżania strony na górę
-    router.push(router.pathname, router.asPath, { locale: lang }).then(() => {
-      // Przewiń do poprzedniej pozycji po zmianie języka
+    router.push(
+      {
+        pathname: pathname,
+        query: query,
+      },
+      undefined,
+      { locale: lang, shallow: true }
+    ).then(() => {
       window.scrollTo(0, scrollPosition);
     });
   };

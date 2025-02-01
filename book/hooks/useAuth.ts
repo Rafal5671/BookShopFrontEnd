@@ -1,17 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useContext } from "react";
+import { AuthContext } from "@/context/AuthContext";
 
-export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export function useAuth() {
+  const context = useContext(AuthContext);
 
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      // Jeśli token istnieje, to zakładaj, że użytkownik jest zalogowany
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, []);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
 
-  return isAuthenticated;
-};
+  return context;
+}

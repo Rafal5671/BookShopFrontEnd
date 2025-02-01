@@ -66,7 +66,7 @@ const UserProfile = () => {
       <div className="flex items-center">
         <Avatar
           size="lg"
-          src={userData.avatarUrl || "https://i.pravatar.cc/150"} // Użyj URL z danych użytkownika lub domyślnego avatara
+          src={userData.avatarUrl || "https://i.pravatar.cc/150"}
           alt="User avatar"
           className="mr-4"
           disableAnimation

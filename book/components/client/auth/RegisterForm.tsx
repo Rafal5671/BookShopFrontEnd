@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { FaEnvelope, FaLock, FaPhone, FaIdCard } from "react-icons/fa";
 import { Input, Button, Spacer, Checkbox, Card } from "@nextui-org/react";
-import { useTranslation } from "../hooks/useTranslation";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useEffect, useState } from "react";
 
 const RegisterForm: React.FC = () => {
@@ -110,7 +110,6 @@ const RegisterForm: React.FC = () => {
       }
   
       const result = await response.json();
-      console.log('Użytkownik zarejestrowany:', result);
       reset(); // Resetuj formularz po pomyślnej rejestracji
       // Możesz tutaj dodać logikę po pomyślnej rejestracji, np. przekierowanie użytkownika
     } catch (error) {

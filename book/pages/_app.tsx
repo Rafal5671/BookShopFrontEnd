@@ -6,18 +6,28 @@ import { useRouter } from "next/router";
 import { CartProvider } from "@/hooks/CartContext";
 import { fontSans, fontMono } from "@/config/fonts";
 import "@/styles/globals.css";
-import Layout from "../components/Layout";
+import Layout from "../components/util/Layout";
+import AdminLayout from "@/components/AdminLayout";
+import { AuthProvider } from "@/context/AuthContext";
+import GlobalSessionModal from "@/components/GlobalSessionModal";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
+  const isAdminRoute = router.pathname.startsWith("/admin");
+
+  // Jeśli to /admin -> używamy AdminLayout, w przeciwnym razie -> Layout
+  const LayoutToUse = isAdminRoute ? AdminLayout : Layout;
 
   return (
     <NextUIProvider navigate={router.push}>
       <NextThemesProvider>
         <CartProvider>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
+          <AuthProvider>
+            <LayoutToUse>
+              <Component {...pageProps} />
+              <GlobalSessionModal />
+            </LayoutToUse>
+          </AuthProvider>
         </CartProvider>
       </NextThemesProvider>
     </NextUIProvider>

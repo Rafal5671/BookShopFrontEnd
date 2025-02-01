@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import React, { useState, useEffect, useTransition, useCallback } from "react";
 import {
   Input,
   Button,
@@ -9,10 +11,13 @@ import {
   SelectItem,
   Progress,
 } from "@nextui-org/react";
-import LoginForm from "@/components/LoginForm";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation"; // W App Routerze
 import { jwtDecode } from "jwt-decode";
+import { createOrderServer, fetchCustomerDataServer } from "@/components/client/delivery/actions";
 
+// Importujemy server actions:
+
+/** Typy i interfejsy (możesz przenieść do osobnego pliku) */
 type FormData = {
   firstName: string;
   lastName: string;
@@ -26,18 +31,18 @@ type FormData = {
   paymentMethod: string;
   agreement: boolean;
 };
+
 type Product = {
   bookId: number;
   titlePl: string;
-  titleEn: string;
-  image?: string;
-  pages_count: number;
-  relese_year: number;
   price: number;
-  discountedPrice?: number;
   quantity: number;
 };
-const DeliveryPage: React.FC = () => {
+
+export default function DeliveryPage() {
+  // -----------------------------
+  // 1. Stan i router
+  // -----------------------------
   const [step, setStep] = useState<number>(1);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -53,110 +58,46 @@ const DeliveryPage: React.FC = () => {
     agreement: false,
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-  const handleOrderSubmit = async () => {
-    try {
-      // Przygotowanie danych zamówienia
-      const orderData = {
-        address: {
-          street: formData.street,
-          postalCode: formData.postalCode,
-          city: formData.city,
-        },
-        items: cart.map((product) => ({
-          bookId: product.bookId,
-          quantity: product.quantity,
-        })),
-        amount: getTotalPrice(),
-      };
-
-      console.log("Dane zamówienia:", orderData);
-
-      // Wysłanie żądania do API
-      const response = await fetch("http://localhost:8080/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      // Obsługa odpowiedzi
-      if (response.ok) {
-        alert("Zamówienie zostało złożone!");
-        router.push("/confirmation");
-      } else {
-        const errorMessage = await response.text(); // Pobierz komunikat błędu (jeśli dostępny)
-        console.error("Błąd API:", errorMessage || "Nieznany błąd");
-        alert(
-          `Wystąpił problem podczas składania zamówienia: ${
-            errorMessage || "Nieznany błąd API"
-          }`
-        );
-      }
-    } catch (error) {
-      console.error("Błąd podczas składania zamówienia:", error);
-      alert(
-        "Wystąpił problem podczas składania zamówienia. Spróbuj ponownie później."
-      );
-    }
-  };
-
-  const handleCountryChange = (selectedCountry: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      country: selectedCountry,
-    }));
-  };
-
-  const handleNextStep = () => {
-    console.log(
-      formData.firstName,
-      formData.lastName,
-      formData.phone,
-      formData.email
-    );
-    setStep((prev) => prev + 1);
-  };
-
-  const handlePreviousStep = () => {
-    setStep((prev) => prev - 1);
-  };
-
-  // Oblicz procent ukończenia
-  const getProgressPercentage = (): number => {
-    return (step / 3) * 100;
-  };
-
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userData, setUserData] = useState<any>(null);
-  const router = useRouter();
   const [orderAsGuest, setOrderAsGuest] = useState<boolean>(false);
 
-  const [cart, setCart] = useState<Product[]>([]); // Stan do przechowywania produktów z koszyka
+  const [cart, setCart] = useState<Product[]>([]); // Stan koszyka
 
-  // Odczyt danych koszyka z localStorage
+  const router = useRouter();
+
+  // Server Actions w React 18 – useTransition
+  const [isPending, startTransition] = useTransition();
+
+  // -----------------------------
+  // 2. Odczyt koszyka z localStorage
+  // -----------------------------
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
-      setCart(JSON.parse(storedCart));
+      try {
+        const parsedCart = JSON.parse(storedCart);
+        setCart(parsedCart);
+      } catch (error) {
+        console.error("Error parsing cart data:", error);
+        setCart([]);
+      }
+    } else {
+      console.log("Cart is empty in localStorage.");
+      setCart([]);
     }
   }, []);
 
+  // Pomocnicza funkcja do sumy koszyka
   const getTotalPrice = (): number => {
-    return cart.reduce(
-      (total, product) => total + product.price * product.quantity,
-      0
-    );
+    return cart.reduce((total, product) => total + product.price * product.quantity, 0);
   };
-  // Sprawdzenie, czy użytkownik jest zalogowany
+
+  // -----------------------------
+  // 3. Autoryzacja – sprawdzanie tokena
+  // -----------------------------
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-
     if (token) {
       try {
         const decodedToken: any = jwtDecode(token);
@@ -167,9 +108,10 @@ const DeliveryPage: React.FC = () => {
           setIsLoggedIn(false);
           localStorage.removeItem("authToken");
         } else {
-          // Token ważny
+          // Token jest ważny
           setIsLoggedIn(true);
-          fetchCustomerData(token); // Pobierz dane użytkownika
+          // Pobierz dane użytkownika z server action:
+          fetchUserData(token);
         }
       } catch (error) {
         console.error("Error decoding token:", error);
@@ -180,56 +122,128 @@ const DeliveryPage: React.FC = () => {
     }
   }, []);
 
-  // Funkcja pobierająca dane użytkownika z API
-  const fetchCustomerData = (token: string) => {
-    fetch("http://localhost:8080/api/customers/me", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
+  // -----------------------------
+  // 4. Pobieranie danych użytkownika z server action
+  // -----------------------------
+  const fetchUserData = useCallback((token: string) => {
+    startTransition(async () => {
+      try {
+        const data = await fetchCustomerDataServer(token);
         console.log("Fetched user data:", data);
+
         setUserData(data);
+        // Uzupełnij formData danymi z bazy, jeśli istnieją:
         setFormData((prev) => ({
           ...prev,
           firstName: data.firstName || prev.firstName,
           lastName: data.lastName || prev.lastName,
           phone: data.phone || prev.phone,
           email: data.email || prev.email,
-          street: data.address?.street || prev.street, // Jeśli dane są w obiekcie address
+          street: data.address?.street || prev.street,
           postalCode: data.address?.postalCode || prev.postalCode,
           city: data.address?.city || prev.city,
           country: data.address?.country || prev.country,
         }));
-      })
-      .catch((error) => {
-        console.error("Error fetching user data:", error);
-      });
-  };
-  // Funkcja obsługująca zamówienie jako gość
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+      }
+    });
+  }, []);
+
+  // Obsługa zamówienia jako gość
   const handleOrderAsGuest = () => {
-    console.log("Guest order selected");
     setOrderAsGuest(true);
   };
+
+  // Po zalogowaniu z LoginForm
   const handleLoginOn = () => {
     setIsLoggedIn(true);
-    const token = localStorage.getItem("authToken") as string;
-    fetchCustomerData(token);
+    const token = localStorage.getItem("authToken");
+    if (token) fetchUserData(token);
   };
+
+  // -----------------------------
+  // 5. Obsługa formularza i kroków
+  // -----------------------------
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCountryChange = (selectedCountry: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      country: selectedCountry,
+    }));
+  };
+
+  const handleNextStep = () => {
+    setStep((prev) => prev + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setStep((prev) => prev - 1);
+  };
+
+  // Pasek postępu
+  const getProgressPercentage = (): number => {
+    return (step / 3) * 100;
+  };
+
+  // -----------------------------
+  // 6. Tworzenie zamówienia (Server Action)
+  // -----------------------------
+  const handleOrderSubmit = async () => {
+    // Przygotowanie danych zamówienia
+    const orderData = {
+      address: {
+        street: formData.street,
+        postalCode: formData.postalCode,
+        city: formData.city,
+        country: formData.country,
+      },
+      items: cart.map((product) => ({
+        bookId: product.bookId,
+        quantity: product.quantity,
+      })),
+      amount: getTotalPrice(),
+    };
+
+    const token = localStorage.getItem("authToken") || "";
+
+    startTransition(async () => {
+      try {
+        await createOrderServer(token, orderData);
+        alert("Zamówienie zostało złożone!");
+        router.push("/confirmation");
+      } catch (error: any) {
+        console.error("Błąd podczas składania zamówienia:", error);
+        alert(
+          `Wystąpił problem podczas składania zamówienia: ${error.message ?? "Nieznany błąd"}`
+        );
+      }
+    });
+  };
+
+  // -----------------------------
+  // 7. Jeśli użytkownik nie jest zalogowany i nie wybrał opcji gościa, pokaż formularz logowania
+  // -----------------------------
   if (!isLoggedIn && !orderAsGuest) {
     return (
       <div>
-        <LoginForm
-          showGuestOrderButton={true}
-          onGuestOrder={handleOrderAsGuest}
-          handleLoginOn={handleLoginOn}
-        />
+        {/* 
+          W Twoim kodzie to jest <LoginForm showGuestOrderButton onGuestOrder={handleOrderAsGuest} ... />
+          Tu tylko symbolicznie.
+        */}
+        <p>Tu będzie LoginForm lub przycisk „Zamawiam jako gość”.</p>
+        <Button onPress={handleOrderAsGuest}>Zamawiam jako gość</Button>
       </div>
     );
   }
 
+  // -----------------------------
+  // 8. Render wieloetapowego formularza
+  // -----------------------------
   return (
     <div className="max-w-4xl mt-10 mb-10 mx-auto p-8 bg-primary-200 rounded-lg shadow-lg">
       <h1 className="text-2xl font-bold mb-6 text-center">Zamówienie</h1>
@@ -269,34 +283,35 @@ const DeliveryPage: React.FC = () => {
               label="Imię"
               placeholder="Wpisz swoje imię"
               name="firstName"
-              value={isLoggedIn ? userData?.firstName : formData.firstName}
+              value={formData.firstName}
               onChange={handleInputChange}
-              readOnly={isLoggedIn}
+              readOnly={isLoggedIn && userData?.firstName}
             />
             <Input
               label="Nazwisko"
               placeholder="Wpisz swoje nazwisko"
               name="lastName"
-              value={isLoggedIn ? userData?.lastName : formData.lastName}
+              value={formData.lastName}
               onChange={handleInputChange}
-              readOnly={isLoggedIn}
+              readOnly={isLoggedIn && userData?.lastName}
             />
             <Input
               label="Numer telefonu"
               placeholder="Wpisz swój numer telefonu"
               name="phone"
-              value={isLoggedIn ? userData?.phone : formData.phone}
+              value={formData.phone}
               onChange={handleInputChange}
-              readOnly={isLoggedIn}
+              readOnly={isLoggedIn && userData?.phone}
             />
             <Input
               label="Email"
               placeholder="Wpisz swój email"
               name="email"
-              value={isLoggedIn ? userData?.email : formData.email}
+              value={formData.email}
               onChange={handleInputChange}
-              readOnly={isLoggedIn}
+              readOnly={isLoggedIn && userData?.email}
             />
+
             <Select
               label="Kraj"
               placeholder="Wybierz kraj"
@@ -326,31 +341,25 @@ const DeliveryPage: React.FC = () => {
               name="street"
               value={formData.street}
               onChange={handleInputChange}
-              readOnly={false}
             />
-
             <Input
               label="Kod pocztowy"
               placeholder="00-000"
               name="postalCode"
               value={formData.postalCode}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleInputChange(e)
-              }
-              readOnly={false}
+              onChange={handleInputChange}
             />
-
             <Input
               label="Miasto"
               placeholder="Wpisz miasto"
               name="city"
               value={formData.city}
               onChange={handleInputChange}
-              readOnly={false}
             />
           </div>
+
           <div className="flex justify-between mt-6">
-            <Button disabled color="default" onClick={handlePreviousStep}>
+            <Button disabled color="default">
               Wróć
             </Button>
             <Button color="default" onClick={handleNextStep}>
@@ -387,6 +396,7 @@ const DeliveryPage: React.FC = () => {
               <Radio value="cash">Gotówka</Radio>
             </RadioGroup>
           </div>
+
           <div className="flex justify-between mt-6">
             <Button color="default" onClick={handlePreviousStep}>
               Wróć
@@ -400,9 +410,7 @@ const DeliveryPage: React.FC = () => {
 
       {step === 3 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4">
-            Podsumowanie Zamówienia
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">Podsumowanie Zamówienia</h2>
 
           <div className="mb-4">
             <h3 className="font-semibold">Produkty w koszyku:</h3>
@@ -430,7 +438,7 @@ const DeliveryPage: React.FC = () => {
               {formData.firstName} {formData.lastName}
             </p>
             <p>
-              {formData.street} {formData.postalCode} {formData.city}
+              {formData.street}, {formData.postalCode} {formData.city}
             </p>
             <p>{formData.country}</p>
             <p>{formData.phone}</p>
@@ -447,8 +455,8 @@ const DeliveryPage: React.FC = () => {
           <Checkbox
             className="mt-4"
             isSelected={formData.agreement}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setFormData({ ...formData, agreement: e.target.checked })
+            onChange={(isSelected) =>
+              setFormData({ ...formData, agreement: !!isSelected })
             }
           >
             Akceptuję regulamin zakupów
@@ -470,6 +478,4 @@ const DeliveryPage: React.FC = () => {
       )}
     </div>
   );
-};
-
-export default DeliveryPage;
+}

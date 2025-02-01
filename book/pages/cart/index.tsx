@@ -2,10 +2,12 @@ import React, { useEffect } from "react";
 import { Button, Image, Input } from "@nextui-org/react";
 import { FaTrash, FaMinus, FaPlus } from "react-icons/fa";
 import { useCart } from "@/hooks/CartContext";
-import { useRouter } from "next/router"; 
+import { useRouter } from "next/router";
+import { useTranslation } from "@/hooks/useTranslation";
 const Cart = () => {
   const { cart, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
   const router = useRouter();
+  const { t } = useTranslation();
   const handleGoToDelivery = () => {
     router.push("/delivery"); // Przekierowanie do strony dostawy
   };
@@ -61,9 +63,9 @@ const Cart = () => {
     <div className="my-10 flex justify-center w-full">
       <div className="shadow-lg rounded-lg p-6 flex w-4/5 bg-primary-100">
         <div className="flex-1 pr-4">
-          <h2 className="text-2xl font-bold mb-4">Twoje produkty</h2>
+          <h2 className="text-2xl font-bold mb-4">{t("yourProducts")}</h2>
           {cart.length === 0 ? (
-            <p>Twój koszyk jest pusty</p>
+            <p>{t("emptyCart")}</p>
           ) : (
             cart.map((product) => (
               <div
@@ -73,10 +75,10 @@ const Cart = () => {
                 {/* Wyświetlanie obrazu produktu */}
                 <div className="flex-shrink-0">
                   <Image
-  src={product.titlePl === "Ziemia obiecana" ? "/ziemia.jpg" : "/wielki.jpg"}
-  alt={product.titlePl}
-  className="w-24 h-24 object-containt"
-/>
+                    src={product.titlePl}
+                    alt={product.titlePl}
+                    className="w-24 h-24 object-containt"
+                  />
 
                 </div>
 
@@ -84,19 +86,18 @@ const Cart = () => {
                 <div className="flex-1 flex flex-col ml-4">
                   <span className="text-lg font-bold">{product.titlePl}</span>
                   <span className="text-lg text-gray-400">
-                    Cena za sztukę: {product.price.toFixed(2)} zł
+                    {t("pricePerUnit")}: {product.price.toFixed(2)} PLN
                   </span>
 
                   {/* Cena i kontrolki ilości */}
                   <div className="flex items-center mt-2 justify-between">
                     <span className="text-lg">
-                      Cena produktów:{" "}
-                      {(product.price * product.quantity).toFixed(2)} zł
+                      {t("totalPrice")}: {(product.price * product.quantity).toFixed(2)} PLN
                     </span>
                     <div className="flex items-center">
                       {product.quantity > 1 ? (
                         <Button
-                          onClick={() => decreaseQuantity(product.bookId)}
+                          onPress={() => decreaseQuantity(product.bookId)}
                           className="mr-2"
                           size="sm"
                         >
@@ -104,7 +105,7 @@ const Cart = () => {
                         </Button>
                       ) : (
                         <Button
-                          onClick={() => removeFromCart(product.bookId)}
+                          onPress={() => removeFromCart(product.bookId)}
                           className="mr-2"
                           size="sm"
                         >
@@ -124,7 +125,7 @@ const Cart = () => {
                         className="w-16 text-center border border-gray-600 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <Button
-                        onClick={() => increaseQuantity(product.bookId)}
+                        onPress={() => increaseQuantity(product.bookId)}
                         className="ml-2"
                         size="sm"
                       >
@@ -140,16 +141,16 @@ const Cart = () => {
 
         <div className="flex flex-col ml-4 pl-4 mt-auto">
           <div className="flex flex-col items-start mb-2">
-            <span className="text-lg font-semibold">Łączna cena:</span>
-            <span className="text-2xl font-bold">{totalPrice} zł</span>
+            <span className="text-lg font-semibold">{t("totalCost")}:</span>
+            <span className="text-2xl font-bold">{totalPrice} PLN</span>
           </div>
-          <Button className="bg-green-500" onClick={handleGoToDelivery}>Wybierz sposób dostawy</Button>
-          <Button
-            onClick={clearCart}
-            className="mt-2 bg-red-500"
-          >
-            Wyczyść koszyk
+          <Button className="bg-green-500" onPress={handleGoToDelivery}>
+            {t("chooseDeliveryMethod")}
           </Button>
+          <Button onPress={clearCart} className="mt-2 bg-red-500">
+            {t("clearCart")}
+          </Button>
+
         </div>
       </div>
     </div>

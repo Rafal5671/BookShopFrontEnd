@@ -1,29 +1,88 @@
-"use client";
-
 import Head from "next/head";
-import { useRouter } from "next/router";
-import ImageCarousel from "@/components/Carousel";
-import ProductCard from "@/components/ProductCard";
-import { Product,fetchProducts } from "@/components/server/FetchProducts";
-import { useState, useEffect } from "react";
+import { Product, fetchProducts } from "@/components/server/product/FetchProducts";
+import ImageCarousel from "@/components/client/slider/Carousel";
+import ProductList from "@/components/client/product/ProductList";
+import MegaMenu from "@/components/CategoryNav";
 
+export async function getServerSideProps() {
+  const products: Product[] = await fetchProducts();
+  return {
+    props: {
+      products,
+    },
+  };
+}
+// data/categories.ts
+
+export interface SubMenuColumn {
+  heading: string;
+  items: string[];
+}
+
+export interface MegaSubMenu {
+  columns: SubMenuColumn[];
+}
+
+export interface Category {
+  name: string;
+  recommended?: boolean; // "polecamy" etykieta
+  subMenu?: MegaSubMenu; // jeśli istnieje, wyświetlamy wielokolumnowy panel
+}
+
+export const categories: Category[] = [
+  {
+    name: 'Książki',
+    subMenu: {
+      columns: [
+        {
+          heading: 'KSIĄŻKI ⇒',
+          items: [
+            'Biografie',
+            'Biznes, ekonomia',
+            'Fantastyka',
+            'Science Fiction',
+            'Kryminał, sensacja, thriller',
+            'Kuchnia i diety',
+            'Literatura faktu',
+            'Literatura obyczajowa',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    name: 'Podręczniki ',
+    subMenu: {
+      columns: [
+        {
+          heading: 'PODRĘCZNIKI SZKOLNE ⇒',
+          items: [
+            'Liceum i technikum',
+            'Szkoła podstawowa',
+            'Lektury, pomoce szkolne',
+          ],
+        },
+        {
+          heading: 'POMOCE DO SZKOŁY ⇒',
+          items: [
+            'Repetytoria',
+            'Repetytoria maturalne',
+            'Repetytoria ósmoklasisty',
+            'Oblicza Geografii',
+            'To jest chemia',
+            'W centrum uwagi',
+          ],
+        },
+      ],
+    },
+  },
+];
 
 type IndexPageProps = {
-  initialProducts: Product[];
+  products: Product[];
 };
 
-export default function IndexPage({ initialProducts = [] }: IndexPageProps) {
-  const { locale } = useRouter();
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      const fetchedProducts = await fetchProducts();
-      setProducts(fetchedProducts);
-    };
-    loadProducts();
-  }, []);
-
+export default function IndexPage({ products }: IndexPageProps) {
   return (
     <div>
       <Head>
@@ -34,15 +93,7 @@ export default function IndexPage({ initialProducts = [] }: IndexPageProps) {
 
       <main className="min-h-screen flex flex-col items-center justify-center">
         <ImageCarousel />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
-          {products.length > 0 ? (
-            products.map((product) => (
-              <ProductCard key={product.bookId} product={product} />
-            ))
-          ) : (
-            <p>No products available.</p>
-          )}
-        </div>
+        <ProductList products={products} />
       </main>
     </div>
   );

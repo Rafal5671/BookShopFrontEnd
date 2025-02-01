@@ -1,3 +1,4 @@
+'use server';
 
 export type Product = {
   bookId: number;
@@ -8,11 +9,11 @@ export type Product = {
   price: number;
 };
 
-// Fetch data server-side
+// Funkcja do pobierania produktów po stronie serwera
 export const fetchProducts = async (): Promise<Product[]> => {
   try {
     const res = await fetch("http://localhost:8080/api/books", {
-      cache: "no-store",
+      cache: "no-store", // Wyłączenie cache'owania
     });
     if (!res.ok) {
       throw new Error("Failed to fetch products");
@@ -23,13 +24,4 @@ export const fetchProducts = async (): Promise<Product[]> => {
     console.error("Error fetching products:", error);
     return [];
   }
-};
-
-export const getServerSideProps = async () => {
-  const products = await fetchProducts();
-  return {
-    props: {
-      products,
-    },
-  };
 };
