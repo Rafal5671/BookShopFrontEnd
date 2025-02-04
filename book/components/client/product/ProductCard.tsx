@@ -7,17 +7,7 @@ import { useRouter } from "next/router";
 import { useCart } from "@/hooks/CartContext";
 import { useTranslation } from "@/hooks/useTranslation";
 
-type Product = {
-  bookId: number;
-  titlePl: string;
-  titleEn: string;
-  imageUrl?: string;
-  pages_count: number;
-  relese_year: number;
-  price: number;
-  discountPrice?: number;
-  staticImage?: string;
-};
+import { Product } from "@/types/types";
 
 type ProductCardProps = {
   product: Product;
@@ -26,7 +16,6 @@ type ProductCardProps = {
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { imageUrl, price, discountPrice, bookId } = product;
   const { locale } = useRouter();
-  const title = locale === "en" ? product.titleEn : product.titlePl;
   const router = useRouter();
   const { addToCart } = useCart();
   const { t } = useTranslation();
@@ -62,7 +51,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <Image
           className="w-[250px] h-[250px] object-contain transition-transform duration-300 hover:scale-110" // Increased dimensions
           src={imageUrl || "/default-image.png"}
-          alt={title}
+          alt={product.title}
         />
       </CardHeader>
 
@@ -77,7 +66,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             textOverflow: "ellipsis",
           }}
         >
-          {truncateText(title, 40)}
+          {truncateText(product.title, 40)}
         </button>
 
         <div className="mt-auto">

@@ -1,43 +1,7 @@
 import { GetServerSideProps } from 'next';
 import ProductClient from '@/components/client/product/ProductClient';
 import { fetchProductById } from '@/components/client/product/actions'; 
-
-type Author = {
-  authorId: number;
-  firstName: string;
-  lastName: string;
-};
-
-type Publisher = {
-  publisherId: number;
-  name: string;
-};
-
-type Review = {
-  reviewId: number;
-  user: string;
-  content: string;
-  rating: number;
-};
-
-type Product = {
-  bookId: number;
-  title: string;
-  imageUrl?: string;
-  pagesCount: number;
-  releseYear: number;
-  price: number;
-  description?: string;
-  discountPrice?: number;
-  staticImage?: string;
-  rating: number;
-  reviews: Review[];
-  releaseDate: string;
-  publisher: Publisher | Publisher[];
-  authors: Author[];
-  originalTitle: string;
-  language: string;
-};
+import { Product } from '@/types/types';
 
 type ProductPageProps = {
   product: Product;

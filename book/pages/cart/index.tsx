@@ -4,6 +4,7 @@ import { FaTrash, FaMinus, FaPlus } from "react-icons/fa";
 import { useCart } from "@/hooks/CartContext";
 import { useRouter } from "next/router";
 import { useTranslation } from "@/hooks/useTranslation";
+
 const Cart = () => {
   const { cart, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
   const router = useRouter();
@@ -56,6 +57,7 @@ const Cart = () => {
     console.log("Produkty w koszyku:");
     cart.forEach((product) => {
       console.log(`Produkt: ${product.titlePl}, Ilość: ${product.quantity}`);
+      console.log(product);
     });
   }, [cart]); // useEffect wywołuje się, gdy koszyk się zmienia
 
@@ -75,7 +77,7 @@ const Cart = () => {
                 {/* Wyświetlanie obrazu produktu */}
                 <div className="flex-shrink-0">
                   <Image
-                    src={product.titlePl}
+                    src={product.imageUrl}
                     alt={product.titlePl}
                     className="w-24 h-24 object-containt"
                   />

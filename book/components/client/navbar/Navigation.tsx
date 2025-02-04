@@ -21,49 +21,24 @@ import {
   FaBars,
 } from "react-icons/fa";
 
-import { useTranslation } from "../../../hooks/useTranslation";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/hooks/CartContext";
-import { ThemeSwitch } from "../../util/theme-switch";
-import LanguageSwitcher from "../../util/LanguageSwitcher";
+import { ThemeSwitch } from "@/components/util/theme-switch";
+import LanguageSwitcher from "@/components/util/LanguageSwitcher";
 import { useRouter } from "next/router";
-
-// Import swojego mega-menu (np. z poprzednich przykładów)
 import MegaMenu from "@/components/CategoryNav";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const { t } = useTranslation();
+  const { cartItemCount } = useCart();
+  const router = useRouter();
+  const { token, logout } = useAuth();
+  const isLoggedIn = !!token;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // NOWY stan do sterowania mega-menu „Wszystkie kategorie”
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const toggleMegaMenu = () => setIsMegaMenuOpen(!isMegaMenuOpen);
-
-  const router = useRouter();
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-  };
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    setIsLoggedIn(!!token);
-
-    const handleResize = () => {
-      setIsMenuOpen(false);
-      // Możesz też zamknąć mega-menu na zmianę rozdzielczości:
-      // setIsMegaMenuOpen(false);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  const { cartItemCount } = useCart();
   let badgeContent = "";
   if (cartItemCount > 99) {
     badgeContent = "99+";
@@ -75,18 +50,22 @@ const Navigation = () => {
   const handleSearch = (query: string) => {
     if (query.trim() !== "") {
       router.push({
-        pathname: '/search',
+        pathname: "/search",
         query: { search: query },
       });
     }
   };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       handleSearch(searchQuery);
     }
   };
+  const handleLogout = () => {
+    logout();
+  };
+  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const toggleMegaMenu = () => setIsMegaMenuOpen((prev) => !prev);
 
   return (
     <>
@@ -151,7 +130,7 @@ const Navigation = () => {
               {isLoggedIn ? (
                 <>
                   <DropdownItem key="profile" href="/profile">
-                  {t("profile")}
+                    {t("profile")}
                   </DropdownItem>
                   <DropdownItem key="logout" onClick={handleLogout}>
                     {t("signOut")}
@@ -233,7 +212,7 @@ const Navigation = () => {
 
       {/* TUŻ POD NAVBAREM – MEGA MENU (pokazujemy tylko, gdy isMegaMenuOpen === true) */}
       {isMegaMenuOpen && (
-        <div className="relative z-50 bg-white shadow-md">
+        <div className="sticky top-16 z-50 bg-white shadow-md">
           <MegaMenu />
         </div>
       )}

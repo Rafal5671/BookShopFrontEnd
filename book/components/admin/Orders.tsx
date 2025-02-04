@@ -4,7 +4,7 @@ import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { Input, Pagination } from "@nextui-org/react";
 import { FaSearch } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchOrdersServer, Order, SortOption, updateOrderStatusServer } from "../server/admin/orders/actions";
+import { fetchOrdersServer, OrderAdmin, SortOption, updateOrderStatusServer } from "../server/admin/orders/actions";
 
 // Import z pliku z server actions:
 
@@ -30,7 +30,7 @@ const REVERSE_STATUS_MAP: { [key: string]: string } = {
 const STATUSES = ["Wszystkie", "Nowe", "W realizacji", "Wysłane", "Zrealizowane"];
 
 export default function Orders() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderAdmin[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("Wszystkie");
   const [searchTerm, setSearchTerm] = useState<string>("");
 

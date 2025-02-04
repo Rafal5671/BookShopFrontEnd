@@ -1,20 +1,6 @@
-// src/server/admin/categories/actions.ts
+import { Category,PageResponse } from "@/types/types";
 
-export type Category = {
-    Id: number;
-    nameEn: string;
-    namePl: string;
-    createdAt: string; // ISO string
-  };
-  
-  export interface PageResponse<T> {
-    content: T[];
-    totalPages: number;
-    totalElements: number;
-    number: number; // current page (0-based)
-    size: number;
-  }
-const API_BASE_URL = "http://localhost:8080/api/admin/categories"; // Dostosuj do swojego URL
+const API_BASE_URL = "http://localhost:8080/api/admin/categories";
 
 export const fetchCategoriesServer = async (
   token: string,

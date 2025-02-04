@@ -1,51 +1,5 @@
 "use server";
-
-type Author = {
-    authorId: number;
-    firstName: string;
-    lastName: string;
-  };
-  
-  type Publisher = {
-    publisherId: number;
-    name: string;
-  };
-  
-  type Review = {
-    reviewId: number;
-    user: string;
-    content: string;
-    rating: number;
-  };
-  
-  type Product = {
-    bookId: number;
-    titlePl: string;
-    titleEn: string;
-    imageUrl?: string;
-    pagesCount: number;
-    releaseYear: number;
-    price: number;
-    descriptionPl?: string;
-    descriptionEN?: string;
-    discountPrice?: number;
-    staticImage?: string;
-    rating: number;
-    reviews: Review[];
-    releaseDate: string;
-    publisher: Publisher | Publisher[];
-    authors: Author[];
-    originalTitle: string;
-    language: string;
-  };
-
-interface PageResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number; // 0-based
-  size: number;
-}
+import { Product,Review } from "@/types/types";
 
 /**
  * Pobiera produkt na podstawie ID
@@ -88,19 +42,24 @@ export async function fetchUserReview(productId: string, token: string): Promise
       },
     });
 
+    if (res.status === 401) {
+      console.warn("Token JWT wygasł. Brak dostępu do recenzji użytkownika.");
+      return null;
+    }
+
     if (res.status === 404) {
-      // Brak recenzji
+      console.warn(`Brak recenzji użytkownika dla produktu ${productId}`);
       return null;
     }
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch user review for product ID: ${productId}`);
+      throw new Error(`Błąd API: ${res.statusText}`);
     }
 
     const fetched = await res.json();
     const review: Review = {
       reviewId: fetched.reviewId,
-      user: fetched.user,
+      name: fetched.name,
       content: fetched.content || fetched.commentPl,
       rating: fetched.rating,
     };
@@ -128,7 +87,7 @@ export async function fetchAllReviews(productId: string): Promise<Review[]> {
     const data = await res.json();
     const mappedReviews: Review[] = data.map((rev: any) => ({
       reviewId: rev.reviewId,
-      user: rev.user,
+      name: rev.name,
       content: rev.content || rev.commentPl,
       rating: rev.rating,
     }));

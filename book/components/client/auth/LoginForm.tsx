@@ -6,9 +6,10 @@ import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { Input, Button, Spacer, Card, Divider } from '@nextui-org/react';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { LoginData, handleLogin } from '../../server/auth/LoginApi';
+import { handleLogin } from '../../server/auth/LoginApi';
 import { useLoginSchema } from '../../server/auth/LoginSchema';
 import { useTranslation } from '@/hooks/useTranslation';
+import { LoginData } from '@/types/types';
 
 interface LoginFormProps {
   showGuestOrderButton?: boolean;

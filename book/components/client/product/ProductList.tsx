@@ -1,9 +1,9 @@
 'use client';  // Komponent klientowy
 
 import { useState, useEffect } from "react";
-import { Product } from "@/components/server/product/FetchProducts"; // Importuj typ Product
 import ProductCard from "@/components/client/product/ProductCard"; // Komponent karty produktu
 import { useTranslation } from "@/hooks/useTranslation";
+import { Product } from "@/types/types";
 type ProductListProps = {
   products: Product[];
 };

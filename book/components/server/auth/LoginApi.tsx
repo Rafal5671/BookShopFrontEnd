@@ -1,19 +1,7 @@
 'use server'
 
 import { jwtDecode } from "jwt-decode";
-
-export interface LoginData {
-  email: string;
-  password: string;
-}
-
-interface LoginResponse {
-  token: string;
-}
-interface AuthResult {
-  userEmail: string | null;
-  token: string | null;
-}
+import { LoginData, LoginResponse, AuthResult } from "@/types/types";
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   const response = await fetch('http://localhost:8080/api/customers/login', {
     method: 'POST',

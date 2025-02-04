@@ -11,26 +11,12 @@ import {
   SelectItem,
   Progress,
 } from "@nextui-org/react";
-import { useRouter } from "next/navigation"; // W App Routerze
+import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { createOrderServer, fetchCustomerDataServer } from "@/components/client/delivery/actions";
+import { loadStripe } from "@stripe/stripe-js";
 
-// Importujemy server actions:
-
-/** Typy i interfejsy (możesz przenieść do osobnego pliku) */
-type FormData = {
-  firstName: string;
-  lastName: string;
-  street: string;
-  postalCode: string;
-  city: string;
-  phone: string;
-  email: string;
-  country: string;
-  deliveryMethod: string;
-  paymentMethod: string;
-  agreement: boolean;
-};
+import { FormData } from "@/types/types";
 
 type Product = {
   bookId: number;
@@ -39,6 +25,7 @@ type Product = {
   quantity: number;
 };
 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
 export default function DeliveryPage() {
   // -----------------------------
   // 1. Stan i router
@@ -62,7 +49,7 @@ export default function DeliveryPage() {
   const [userData, setUserData] = useState<any>(null);
   const [orderAsGuest, setOrderAsGuest] = useState<boolean>(false);
 
-  const [cart, setCart] = useState<Product[]>([]); // Stan koszyka
+  const [cart, setCart] = useState<Product[]>([]); 
 
   const router = useRouter();
 
@@ -194,7 +181,6 @@ export default function DeliveryPage() {
   // 6. Tworzenie zamówienia (Server Action)
   // -----------------------------
   const handleOrderSubmit = async () => {
-    // Przygotowanie danych zamówienia
     const orderData = {
       address: {
         street: formData.street,
@@ -202,28 +188,45 @@ export default function DeliveryPage() {
         city: formData.city,
         country: formData.country,
       },
-      items: cart.map((product) => ({
-        bookId: product.bookId,
-        quantity: product.quantity,
+      items: cart.map((p) => ({
+        bookId: p.bookId,
+        quantity: p.quantity,
       })),
       amount: getTotalPrice(),
     };
-
+  
     const token = localStorage.getItem("authToken") || "";
-
+  
     startTransition(async () => {
       try {
-        await createOrderServer(token, orderData);
-        alert("Zamówienie zostało złożone!");
-        router.push("/confirmation");
+        // Wywołujemy funkcję tworzącą zamówienie i CheckoutSession na backendzie
+        const result = await createOrderServer(token, orderData);
+        console.log("createOrderServer result:", result);
+  
+        // Zakładamy, że backend zwraca { orderId, url }
+        const { orderId, url } = result;
+        if (!url) {
+          console.warn("Brak 'url' w odpowiedzi z backendu (Stripe Checkout).");
+        }
+  
+        // Jeśli paymentMethod = "online", przekierowujemy na URL Stripe Checkout:
+        if (formData.paymentMethod === "online") {
+          // 1. Usuwamy z kodu confirmCardPayment i płatność kartą u siebie,
+          //    bo teraz wszystko dzieje się na stronie Stripe.
+          window.location.href = url; // przenosi na Stripe Checkout
+        } else {
+          // Płatność gotówką/przy odbiorze, itp.
+          alert("Zamówienie zostało złożone – płatność przy odbiorze.");
+          localStorage.removeItem("cart");
+          router.push("/confirmation");
+        }
       } catch (error: any) {
         console.error("Błąd podczas składania zamówienia:", error);
-        alert(
-          `Wystąpił problem podczas składania zamówienia: ${error.message ?? "Nieznany błąd"}`
-        );
+        alert(`Wystąpił problem podczas składania zamówienia: ${error.message ?? "Nieznany błąd"}`);
       }
     });
   };
+  
 
   // -----------------------------
   // 7. Jeśli użytkownik nie jest zalogowany i nie wybrał opcji gościa, pokaż formularz logowania
@@ -392,7 +395,7 @@ export default function DeliveryPage() {
               }}
               label="Wybierz metodę płatności"
             >
-              <Radio value="online">Płatność online</Radio>
+              <Radio value="online">Płatność online (Stripe)</Radio>
               <Radio value="cash">Gotówka</Radio>
             </RadioGroup>
           </div>
@@ -463,13 +466,13 @@ export default function DeliveryPage() {
           </Checkbox>
 
           <div className="flex justify-between mt-6">
-            <Button color="default" onClick={handlePreviousStep}>
+            <Button color="default" onPress={handlePreviousStep}>
               Wróć
             </Button>
             <Button
               color="default"
               isDisabled={!formData.agreement}
-              onClick={handleOrderSubmit}
+              onPress={handleOrderSubmit}
             >
               Potwierdź
             </Button>

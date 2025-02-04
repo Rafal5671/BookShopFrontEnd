@@ -1,17 +1,5 @@
 "use server";
 
-export interface OrderItem {
-  bookId: number;
-  quantity: number;
-}
-
-export interface Address {
-  street: string;
-  postalCode: string;
-  city: string;
-  country?: string;
-}
-
 /**
  * Tworzy zamówienie w backendzie.
  * 

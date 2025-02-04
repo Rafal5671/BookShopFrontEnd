@@ -1,13 +1,6 @@
 'use server';
 
-export type Product = {
-  bookId: number;
-  titlePl: string;
-  titleEn: string;
-  pages_count: number;
-  relese_year: number;
-  price: number;
-};
+import { Product } from "@/types/types";
 
 // Funkcja do pobierania produktów po stronie serwera
 export const fetchProducts = async (): Promise<Product[]> => {

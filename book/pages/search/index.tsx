@@ -1,5 +1,3 @@
-// pages/search/index.tsx
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -12,84 +10,18 @@ import {
   Pagination
 } from "@nextui-org/react";
 import { FaSort } from "react-icons/fa";
-import SidebarFilters, { Filters as SidebarFiltersType } from "@/components/client/search/SidebarFilters";
+import SidebarFilters from "@/components/client/search/SidebarFilters";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useCart } from "@/hooks/CartContext";
 
-// Definicje Typów
-type Author = {
-  authorId: number;
-  firstName: string;
-  lastName: string;
-  isUnavailable?: boolean; // Opcjonalne
-};
 
-type Publisher = {
-  publisherId: number;
-  name: string;
-};
-
-type ReviewDTO = {
-  reviewId: number;
-  user: string;
-  rating: number;
-  content: string;
-};
-
-type Genre = {
-  genreId: number;
-  name: string;
-  isUnavailable?: boolean; // Nowe pole
-};
-
-type Category = {
-  id: number;
-  namePl: string;
-  nameEn: string;
-};
-
-type Book = {
-  bookId: number;
-  title: string;
-  originalTitle: string;
-  price: number;
-  discountPrice?: number;
-  description?: string;
-  stockQuantity: number;
-  imageUrl?: string;
-  pagesCount: number;
-  coverType: string;
-  language: string;
-  genres: Genre[];
-  releaseDate?: string;
-  publisher?: Publisher;
-  authors: Author[];
-  reviews: ReviewDTO[];
-};
-
-type PaginatedResponse = {
-  books: Book[];
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  availableGenres: Genre[];
-  availableCategories: Category[];
-  availableAuthors: Author[];
-  maxAvailablePrice: number;
-};
-
-type Filters = {
-  selectedGenres: number[];
-  selectedCategories: number[];
-  selectedAuthors: number[];
-  freeShipping: boolean;
-  priceRange: [number, number];
-};
+import { Filters,PaginatedResponse,Product,Review,Author,Genre,Category } from "@/types/types";
 
 const SearchPage: React.FC = () => {
   const router = useRouter();
   const { search: searchQuery } = router.query;
   const { t } = useTranslation();
-  const [books, setBooks] = useState<Book[]>([]);
+  const [books, setBooks] = useState<Product[]>([]);
   const [currentSort, setCurrentSort] = useState<string>("titlePl-asc");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -187,7 +119,7 @@ const SearchPage: React.FC = () => {
 
   // Funkcja do zastosowania filtrów
   // Funkcja do zastosowania filtrów
-  const handleApplyFilters = useCallback((appliedFilters: SidebarFiltersType) => {
+  const handleApplyFilters = useCallback((appliedFilters: Filters) => {
     setFilters(appliedFilters);
     setCurrentPage(1);
 
@@ -327,7 +259,7 @@ const SearchPage: React.FC = () => {
     router.locale // Dodanie locale do zależności
   ]);
   // Sortowanie książek
-  const handleSort = useCallback((sortBy: keyof Book, order: "asc" | "desc") => {
+  const handleSort = useCallback((sortBy: keyof Product, order: "asc" | "desc") => {
     setCurrentSort(`${sortBy}-${order}`);
     setCurrentPage(1);
 
@@ -370,15 +302,20 @@ const SearchPage: React.FC = () => {
   const getAuthors = (authors: Author[]): string => {
     return authors.map((author) => `${author.firstName} ${author.lastName}`).join(", ");
   };
-
+  const {addToCart} = useCart();
   // Funkcja do obsługi dodawania do koszyka (placeholder)
-  const handleAddToCart = (book: Book) => {
+  const handleAddToCart = (book: Product) => {
     // Implementacja logiki dodawania do koszyka
-    alert(`Dodano do koszyka: ${book.title}`);
+    addToCart({
+      ...book, quantity: 1,
+      titlePl: "",
+      titleEn: "",
+      pages_count: 0,
+      relese_year: 0
+    });
   };
-
   // Funkcja do obliczania średniej ocen
-  const getAverageRating = (reviews: ReviewDTO[]): number => {
+  const getAverageRating = (reviews: Review[]): number => {
     if (reviews.length === 0) return 0;
     const total = reviews.reduce((sum, review) => sum + review.rating, 0);
     return parseFloat((total / reviews.length).toFixed(1));
@@ -402,7 +339,7 @@ const SearchPage: React.FC = () => {
           <DropdownMenu
             aria-label={t("sorting")}
             onAction={(key) => {
-              const [sortBy, order] = String(key).split("-") as [keyof Book, "asc" | "desc"];
+              const [sortBy, order] = String(key).split("-") as [keyof Product, "asc" | "desc"];
               handleSort(sortBy, order);
             }}
           >

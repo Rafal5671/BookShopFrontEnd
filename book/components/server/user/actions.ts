@@ -1,45 +1,4 @@
-type User = {
-    email: string;
-    firstName: string;
-    lastName: string;
-    phone: string;
-    createdAt: string;
-    orders: Order[];
-    reviews: Review[];
-};
-type OrderItem = {
-    itemId: number;
-    quantity: number;
-    bookTitle: string;
-};
-
-// Typ dla pojedynczego zamówienia
-type Order = {
-    orderId: number;
-    status:
-    | "PENDING"
-    | "PAID"
-    | "SHIPPED"
-    | "DELIVERED"
-    | "CANCELED"
-    | "RETURNED";
-    orderType: "REGISTERED_USER" | "GUEST";
-    amount: string;
-    createdAt: string;
-    orderDate: string;
-    items: OrderItem[];
-};
-
-// Typ dla pojedynczej recenzji
-type Review = {
-    reviewId: number;
-    rating: number;
-    commentPl: string;
-    commentEn: string;
-    bookTitle: string;
-    createdAt: string;
-    reviewDate: string;
-};
+import { User } from "@/types/types";
 
 export async function fetchUserProfileServer(token: string): Promise<User> {
     if (!token) {

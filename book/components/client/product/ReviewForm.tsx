@@ -21,6 +21,7 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { deleteReview, submitReview } from "../review/actions";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Review } from "@/types/types";
 
 const StarRating = ({
   rating,
@@ -50,12 +51,6 @@ const StarRating = ({
       })}
     </div>
   );
-};
-
-type Review = {
-  reviewId: number;
-  content: string;
-  rating: number;
 };
 
 type ReviewFormProps = {

@@ -9,33 +9,7 @@ import {
 } from "@nextui-org/react";
 import { FaCheck } from "react-icons/fa";
 import { useTranslation } from "@/hooks/useTranslation";
-
-type Genre = {
-  genreId: number;
-  name: string;
-  isUnavailable?: boolean;
-};
-
-type Category = {
-  id: number;
-  name: string;
-  nameEn: string;
-};
-
-type Author = {
-  authorId: number;
-  firstName: string;
-  lastName: string;
-  isUnavailable?: boolean;
-};
-
-export type Filters = {
-  selectedGenres: number[];
-  selectedCategories: number[];
-  selectedAuthors: number[];
-  freeShipping: boolean;
-  priceRange: [number, number];
-};
+import { Genre,Category,Author,Filters } from "@/types/types";
 
 type SidebarFiltersProps = {
   genres: Genre[];
@@ -109,11 +83,10 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
               <Checkbox
                 key={genre.genreId}
                 value={genre.genreId.toString()}
-                isDisabled={genre.isUnavailable}
                 color="warning"
                 className="py-1"
               >
-                {genre.name} {genre.isUnavailable ? "(Niedostępny)" : ""}
+                {genre.name}
               </Checkbox>
             ))}
           </CheckboxGroup>
@@ -139,11 +112,10 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
               <Checkbox
                 key={author.authorId}
                 value={author.authorId.toString()}
-                isDisabled={author.isUnavailable}
                 className="py-1"
                 color="warning"
               >
-                {author.firstName} {author.lastName} {author.isUnavailable ? "(Niedostępny)" : ""}
+                {author.firstName} {author.lastName}
               </Checkbox>
             ))}
           </CheckboxGroup>

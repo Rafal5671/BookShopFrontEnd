@@ -1,20 +1,6 @@
 "use server";
 
-export interface Order {
-  orderId: string;
-  date: string;
-  itemsCount: number;
-  amount: string;
-  status: string;
-}
-
-interface PageResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number; // aktualna strona 0-based (Spring)
-  size: number;
-}
+import { OrderAdmin,PageResponse } from "@/types/types";
 
 export type SortOption = "dateAsc" | "dateDesc" | "amountAsc" | "amountDesc";
 
@@ -31,7 +17,7 @@ export async function fetchOrdersServer(
   page: number,
   rowsPerPage: number,
   sortOption: SortOption
-): Promise<PageResponse<Order>> {
+): Promise<PageResponse<OrderAdmin>> {
   if (!token) {
     throw new Error("Brak tokenu autoryzacji.");
   }

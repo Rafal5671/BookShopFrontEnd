@@ -4,18 +4,9 @@ import { Button } from '@nextui-org/react';
 import { FaChevronRight, FaChevronDown } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Category,Genre } from '@/types/types';
 
-// Define TypeScript Interface for API Data
-interface CategoryDTO {
-    id: number;
-    name: string;
-    namePl: string;
-    createdAt: string;
-}
-interface Genre {
-    genreId: number;
-    name: string;
-}
+
 const categoryHeaders = [
     { id: 1, label: "GATUNKI KSIĄŻEK" },
     { id: 2, label: "SPECJALNE GATUNKI" },
@@ -26,7 +17,7 @@ const categoryHeaders = [
 const MegaMenu: FC = () => {
     const [open, setOpen] = useState(false);
     const [activeCatIndex, setActiveCatIndex] = useState<number | null>(null);
-    const [categories, setCategories] = useState<CategoryDTO[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [genres, setGenres] = useState<Genre[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingGenres, setLoadingGenres] = useState(false);

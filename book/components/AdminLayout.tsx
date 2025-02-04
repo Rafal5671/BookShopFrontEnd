@@ -1,5 +1,3 @@
-// app/admin/layout.tsx
-
 import React, { useEffect, useState } from "react";
 import { NextUIProvider } from "@nextui-org/react";
 import Sidebar from "@/components/admin/Sidebar";
@@ -10,6 +8,7 @@ import Authors from "./admin/Authors";
 import Publishers from "./admin/Publishers";
 import Users from "./admin/Users";
 import Categories from "./admin/Categories";
+
 export const metadata = {
   title: "Panel administratora",
 };

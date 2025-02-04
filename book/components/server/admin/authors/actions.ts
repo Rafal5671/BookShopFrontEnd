@@ -38,7 +38,7 @@ export async function fetchAuthorsServer(token: string, page: number) {
         },
       }
     );
-  
+
     if (response.status === 401) {
       // Możemy rzucić błąd, żeby klient wiedział, że sesja wygasła
       throw new Error("SESSION_EXPIRED");

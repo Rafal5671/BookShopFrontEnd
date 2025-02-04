@@ -1,16 +1,6 @@
 import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 
-type Product = {
-  bookId: number;
-  titlePl: string;
-  titleEn: string;
-  image?: string;
-  pages_count: number;
-  relese_year: number;
-  price: number;
-  discountedPrice?: number;
-  quantity: number;
-};
+import { Product } from "@/types/types";
 
 type CartContextType = {
   cart: Product[];

@@ -1,17 +1,6 @@
 "use server";
 
-export interface Publisher {
-  publisherId: number;
-  name: string;
-}
-
-interface PagedResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number; // aktualna strona 0-based (Spring)
-  size: number;
-}
+import { PageResponse, Publisher } from "@/types/types";
 
 /**
  * Pobiera listę wydawców z backendu.
@@ -24,7 +13,7 @@ export async function fetchPublishersServer(
   token: string,
   page: number,
   pageSize: number
-): Promise<PagedResponse<Publisher>> {
+): Promise<PageResponse<Publisher>> {
   if (!token) {
     throw new Error("Brak tokenu uwierzytelniającego (fetchPublishers).");
   }

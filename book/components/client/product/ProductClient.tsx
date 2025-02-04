@@ -8,42 +8,8 @@ import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import ReviewForm from "@/components/client/product/ReviewForm";
 import { deleteUserReview, fetchAllReviews, fetchUserReview, updateUserReview } from "./actions";
 import { useTranslation } from "@/hooks/useTranslation";
-type Author = {
-  authorId: number;
-  firstName: string;
-  lastName: string;
-};
-
-type Publisher = {
-  publisherId: number;
-  name: string;
-};
-
-type Review = {
-  reviewId: number;
-  user: string;
-  content: string;
-  rating: number;
-};
-
-type Product = {
-  bookId: number;
-  title: string;
-  imageUrl?: string;
-  pagesCount: number;
-  releseYear: number;
-  price: number;
-  description?: string;
-  discountPrice?: number;
-  staticImage?: string;
-  rating: number;
-  reviews: Review[];
-  releaseDate: string;
-  publisher: Publisher | Publisher[];
-  authors: Author[];
-  originalTitle: string;
-  language: string;
-};
+import { useCart } from "@/hooks/CartContext";
+import { Product,Review,Author } from "@/types/types";
 
 interface ProductClientProps {
   product: Product;
@@ -74,17 +40,10 @@ const displayPublisherNames = (product: Product): string => {
 };
 
 const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
-  const router = useRouter();
   const [reviews, setReviews] = useState<Review[]>(product.reviews || []);
   const [userReview, setUserReview] = useState<Review | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [userData, setUserData] = useState<any>(null);
-  const [formData, setFormData] = useState<any>({
-    // Możesz dostosować pola formularza według potrzeb
-  });
   const { t } = useTranslation();
-  // React 18: useTransition dla asynchronicznych operacji
-  const [isPending, startTransition] = useTransition();
 
   const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
@@ -126,6 +85,11 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     if (!token) return;
     try {
       const fetchedReview = await fetchUserReview(product.bookId.toString(), token);
+      if (!fetchedReview) {
+        console.warn("Nie znaleziono recenzji użytkownika lub token wygasł.");
+        return;
+      }
+
       setUserReview(fetchedReview);
     } catch (error) {
       console.error("Error fetching user review:", error);
@@ -165,11 +129,13 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     fetchReviewsList();
     refreshUserReview();
   };
-
+const { addToCart } = useCart();
   // Funkcja do dodania produktu do koszyka
   const handleAddToCart = () => {
     // Implementacja dodawania do koszyka
-    alert(t("addedToCart"));
+    addToCart({
+      ...product, quantity: 1
+    });
   };
 
   const getAuthors = (authors: Author[]) => {
@@ -280,23 +246,25 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
         {/* Lista wszystkich recenzji */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4">{t("reviews")}</h2>
-          {reviews.map((r) => (
-            <Card key={r.reviewId} className="mb-4 bg-primary-100">
-              <CardHeader className="flex flex-col items-start pb-2">
-                {/* Imię użytkownika + gwiazdki w jednej linii */}
-                <div className="flex items-center">
-                  <h3 className="font-semibold text-lg mr-2">{r.user}</h3>
+          {reviews.length > 0 ? (
+            reviews.map((r) => (
+              <Card key={r.reviewId} className="mb-4 bg-primary-100">
+                <CardHeader className="flex flex-col items-start pb-2">
+                  {/* Imię użytkownika + gwiazdki w jednej linii */}
                   <div className="flex items-center">
-                    {renderStars(r.rating)}
+                    <h3 className="font-semibold text-lg mr-2">{r.name}</h3>
+                    <div className="flex items-center">{renderStars(r.rating)}</div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardBody>
-                {/* Treść recenzji pod spodem */}
-                <p>{r.content}</p>
-              </CardBody>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardBody>
+                  {/* Treść recenzji pod spodem */}
+                  <p>{r.content}</p>
+                </CardBody>
+              </Card>
+            ))
+          ) : (
+            <p>{t("no_reviews")}</p>
+          )}
         </div>
       </Card>
     </div>

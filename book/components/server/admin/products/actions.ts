@@ -1,53 +1,9 @@
 "use server";
 
-interface Publisher {
-    publisherId: number;
-    name: string;
-  }
-  
-  interface Author {
-    authorId: number;
-    firstName: string;
-    lastName: string;
-  }
-  
-  type Product = {
-    bookId: number;
-    titlePl: string;
-    titleEn: string;
-    imageUrl?: string;
-    pagesCount: number;
-    releseYear: number;
-    price: number;
-    descriptionPl?: string;
-    descriptionEN?: string;
-    discountPrice?: number;
-    staticImage?: string;
-    rating: number;
-    reviews: { reviewId: number; user: string; content: string; rating: number }[];
-    releaseDate: string;
-    publisher: Publisher | Publisher[];
-    authors: Author[];
-    originalTitle: string;
-    language: string;
-    category?: string; // Filtry
-    species?: string;
-    genres?: string[];
-    stock?: number;
-  };
-  interface PagedResponse<T> {
-    content: T[];
-    totalPages: number;
-    totalElements: number;
-    number: number; // numer aktualnej strony (0-based)
-    size: number;
-  }
-// ^ możesz zaimportować typy z osobnego pliku, albo tu zdefiniować
+import { PageResponse, Author, Product, Publisher } from "@/types/types";
 
-/**
- * Pobranie listy wydawnictw z back-endu
- */
-export async function fetchPublishersServer(token: string): Promise<PagedResponse<Publisher>> {
+
+export async function fetchPublishersServer(token: string): Promise<PageResponse<Publisher>> {
   if (!token) throw new Error("Brak tokenu uwierzytelniającego (publishers).");
 
   const res = await fetch(
@@ -71,7 +27,7 @@ export async function fetchPublishersServer(token: string): Promise<PagedRespons
 /**
  * Pobranie listy autorów z back-endu
  */
-export async function fetchAuthorsServer(token: string): Promise<PagedResponse<Author>> {
+export async function fetchAuthorsServer(token: string): Promise<PageResponse<Author>> {
   if (!token) throw new Error("Brak tokenu uwierzytelniającego (authors).");
 
   const res = await fetch(
@@ -112,7 +68,7 @@ export async function createProductServer(token: string, requestBody: any) {
     let errorData;
     try {
       errorData = await res.json();
-    } catch {}
+    } catch { }
     throw new Error(errorData?.message ?? "Błąd podczas dodawania produktu.");
   }
 
@@ -138,7 +94,7 @@ export async function updateProductServer(token: string, bookId: number, request
     let errorData;
     try {
       errorData = await res.json();
-    } catch {}
+    } catch { }
     throw new Error(errorData?.message ?? "Błąd podczas aktualizacji produktu.");
   }
 
@@ -152,58 +108,58 @@ export async function updateProductServer(token: string, bookId: number, request
  * @param size - liczba produktów na stronę
  */
 export async function fetchProductsServer(
-    token: string,
-    page: number,
-    size: number
-  ): Promise<PagedResponse<Product>> {
-    if (!token) {
-      throw new Error("Brak tokenu uwierzytelniającego (fetchProducts).");
-    }
-    
-    // Nasz backend wymaga 0-based, więc konwertujemy:
-    const springPageIndex = page - 1;
-  
-    const response = await fetch(
-      `http://localhost:8080/api/admin/products?page=${springPageIndex}&size=${size}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  
-    if (!response.ok) {
-      throw new Error("Błąd pobierania listy produktów.");
-    }
-  
-    return response.json();
+  token: string,
+  page: number,
+  size: number
+): Promise<PageResponse<Product>> {
+  if (!token) {
+    throw new Error("Brak tokenu uwierzytelniającego (fetchProducts).");
   }
-  
-  /**
-   * Usuwa produkt o danym ID
-   */
-  export async function deleteProductServer(token: string, productId: number) {
-    if (!token) {
-      throw new Error("Brak tokenu uwierzytelniającego (deleteProduct).");
+
+  // Nasz backend wymaga 0-based, więc konwertujemy:
+  const springPageIndex = page - 1;
+
+  const response = await fetch(
+    `http://localhost:8080/api/admin/products?page=${springPageIndex}&size=${size}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     }
-    
-    const response = await fetch(
-      `http://localhost:8080/api/admin/products/${productId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  
-    if (!response.ok) {
-      throw new Error("Nie udało się usunąć produktu.");
-    }
-  
-    // Możesz zwrócić JSON z informacją o sukcesie
-    return response.json();
+  );
+
+  if (!response.ok) {
+    throw new Error("Błąd pobierania listy produktów.");
   }
+
+  return response.json();
+}
+
+/**
+ * Usuwa produkt o danym ID
+ */
+export async function deleteProductServer(token: string, productId: number) {
+  if (!token) {
+    throw new Error("Brak tokenu uwierzytelniającego (deleteProduct).");
+  }
+
+  const response = await fetch(
+    `http://localhost:8080/api/admin/products/${productId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Nie udało się usunąć produktu.");
+  }
+
+  // Możesz zwrócić JSON z informacją o sukcesie
+  return response.json();
+}

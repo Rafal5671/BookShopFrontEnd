@@ -4,51 +4,7 @@ import { Card, Spinner } from "@nextui-org/react";
 import { FaStar, FaEdit, FaTrash } from "react-icons/fa";
 import { deleteReviewServer, fetchUserProfileServer } from "@/components/server/user/actions";
 import { useTranslation } from "@/hooks/useTranslation";
-// Typ dla pojedynczego elementu zamówienia
-type OrderItem = {
-  itemId: number;
-  quantity: number;
-  bookTitle: string;
-};
-
-// Typ dla pojedynczego zamówienia
-type Order = {
-  orderId: number;
-  status:
-  | "PENDING"
-  | "PAID"
-  | "SHIPPED"
-  | "DELIVERED"
-  | "CANCELED"
-  | "RETURNED";
-  orderType: "REGISTERED_USER" | "GUEST";
-  amount: string;
-  createdAt: string;
-  orderDate: string;
-  items: OrderItem[];
-};
-
-// Typ dla pojedynczej recenzji
-type Review = {
-  reviewId: number;
-  rating: number;
-  commentPl: string;
-  commentEn: string;
-  bookTitle: string;
-  createdAt: string;
-  reviewDate: string;
-};
-
-// Typ dla użytkownika
-type User = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  createdAt: string;
-  orders: Order[];
-  reviews: Review[];
-};
+import { User } from "@/types/types";
 
 const UserProfile: React.FC = () => {
   const [userData, setUserData] = useState<User | null>(null);
@@ -283,7 +239,7 @@ const UserProfile: React.FC = () => {
                   <h3 className="text-lg font-bold mb-2 flex items-center space-x-2">
                     <span>{review.bookTitle}</span>
                     <span className="flex space-x-1">
-                      {Array.from({ length: 10 }).map((_, index) => (
+                      {Array.from({ length: 5 }).map((_, index) => (
                         <FaStar
                           key={index}
                           className={`${index < review.rating ? "text-yellow-500" : "text-gray-300"
@@ -295,7 +251,7 @@ const UserProfile: React.FC = () => {
                   {/* Komentarz */}
                   <p className="mb-2">
                     <span className="font-bold">{t("comment")}:</span>{" "}
-                    {review.commentPl}
+                    {review.content}
                   </p>
                 </Card>
               ))}
