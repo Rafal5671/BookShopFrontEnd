@@ -1,31 +1,33 @@
+"use client";
+
 import React, { useState, useEffect, useCallback, useTransition } from "react";
 import {
-  Pagination, Modal,
+  Pagination,
+  Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   Button,
   useDisclosure,
-  ModalFooter
+  ModalFooter,
 } from "@nextui-org/react";
-import { Popover, PopoverTrigger, PopoverContent } from "@nextui-org/react";
 import AddProduct from "./AddProducts";
 import NavbarProducts from "./ProductsNavbar";
 import ProductDetails from "./ProductDetails";
 import { FaEdit, FaInfoCircle, FaTrashAlt } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
-import { deleteProductServer, fetchProductsServer } from "../server/admin/products/actions";
+import {
+  deleteProductServer,
+  fetchCategories,
+  fetchGenres,
+  fetchProductsServer,
+} from "../server/admin/products/actions";
+import { withAuth } from "../server/auth/withAuth";
 
-type Author = {
-  authorId: number;
-  firstName: string;
-  lastName: string;
-};
-
-type Publisher = {
-  publisherId: number;
+interface Genre {
+  genreId: number;
   name: string;
-};
+}
 
 type Product = {
   bookId: number;
@@ -42,31 +44,22 @@ type Product = {
   rating: number;
   reviews: { reviewId: number; user: string; content: string; rating: number }[];
   releaseDate: string;
-  publisher: Publisher | Publisher[];
-  authors: Author[];
-  originalTitle: string;
-  language: string;
-  category?: string; // Filtry
-  species?: string;
+  // Przyjmujemy, że kategoria i gatunki są zwracane jako string (możesz to dostosować do własnych potrzeb)
+  category?: string;
   genres?: string[];
   stock?: number;
 };
 
-interface PageResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number;  // numer aktualnej strony (0-based)
-  size: number;
-}
-
 const Products = () => {
-  // ----------------------------------------------
-  // 1. Stan i zmienne
-  // ----------------------------------------------
+  // Stany pól filtrowania (inputy)
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [speciesFilter, setSpeciesFilter] = useState("");
+  const [genreFilter, setGenreFilter] = useState("");
+
+  // Stany zastosowanych filtrów (aplikowanych po kliknięciu "Filtruj")
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
+  const [appliedCategoryFilter, setAppliedCategoryFilter] = useState("");
+  const [appliedGenreFilter, setAppliedGenreFilter] = useState("");
 
   const [products, setProducts] = useState<Product[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -75,12 +68,12 @@ const Products = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // NextUI stuff
+  // NextUI – kontrola modali
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const detailsDisclosure = useDisclosure();
   const editDisclosure = useDisclosure();
 
-  // Dodatkowe stany do obsługi modali
+  // Modal potwierdzenia usunięcia
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     product: Product | null;
@@ -92,15 +85,13 @@ const Products = () => {
   // Liczba produktów na stronę
   const productsPerPage = 20;
 
-  // Autoryzacja
-  const { token, loading: authLoading } = useAuth();
+  // Uwierzytelnianie – pobieramy token oraz rolę użytkownika
+  const { token, userRole } = useAuth();
 
-  // Dla operacji asynchronicznych z server actions:
+  // Dla operacji asynchronicznych
   const [isPending, startTransition] = useTransition();
 
-  // ----------------------------------------------
-  // 2. Pobieranie listy produktów (Server Action)
-  // ----------------------------------------------
+  // Funkcja pobierająca produkty z serwera – korzystamy z zastosowanych filtrów
   const fetchProducts = useCallback(
     async (page: number) => {
       if (!token) return;
@@ -109,7 +100,13 @@ const Products = () => {
 
       startTransition(async () => {
         try {
-          const data = await fetchProductsServer(token, page, productsPerPage);
+          const data = await fetchProductsServer(
+            page,
+            productsPerPage,
+            appliedSearchTerm,
+            appliedCategoryFilter ? parseInt(appliedCategoryFilter) : undefined,
+            appliedGenreFilter ? parseInt(appliedGenreFilter) : undefined
+          );
           setProducts(data.content);
           setTotalPages(data.totalPages);
           setIsLoading(false);
@@ -119,17 +116,35 @@ const Products = () => {
         }
       });
     },
-    [token]
+    [token, appliedSearchTerm, appliedCategoryFilter, appliedGenreFilter]
   );
 
-  // Ładuj produkty, kiedy zmienia się currentPage
+  // Pobieramy produkty i filtry przy zmianie strony lub po zastosowaniu nowych filtrów
   useEffect(() => {
     fetchProducts(currentPage);
+    async function loadFilters() {
+      try {
+        const categoriesData = await fetchCategories();
+        const genresData = await fetchGenres();
+        // Jeśli genresData to tablica stringów, przekształcamy ją do obiektów
+        if (genresData.length > 0 && typeof genresData[0] === "string") {
+          const formattedGenres = genresData.map((genre: string, index: number) => ({
+            genreId: index + 1,
+            name: genre,
+          }));
+          setGenres(formattedGenres);
+        } else {
+          setGenres(genresData);
+        }
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Błąd ładowania filtrów:", error);
+      }
+    }
+    loadFilters();
   }, [currentPage, fetchProducts]);
 
-  // ----------------------------------------------
-  // 3. Usuwanie produktu
-  // ----------------------------------------------
+  // Obsługa usuwania produktu
   const confirmDeleteProduct = (product: Product) => {
     setDeleteConfirmation({ isOpen: true, product });
   };
@@ -139,7 +154,7 @@ const Products = () => {
       if (!token) return;
       try {
         startTransition(async () => {
-          await deleteProductServer(token, productId);
+          await deleteProductServer(productId);
           setProducts((prev) => prev.filter((p) => p.bookId !== productId));
           setDeleteConfirmation({ isOpen: false, product: null });
         });
@@ -150,20 +165,18 @@ const Products = () => {
     [token]
   );
 
-  // ----------------------------------------------
-  // 4. Filtrowanie na podstawie searchTerm, categoryFilter i speciesFilter
-  // ----------------------------------------------
-  const filteredProducts = products.filter((product) => {
-    return (
-      product.titlePl.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (categoryFilter === "" || product.category === categoryFilter) &&
-      (speciesFilter === "" || product.species === speciesFilter)
-    );
-  });
+  // Funkcja wywoływana przy kliknięciu przycisku "Filtruj"
+  const handleFilter = () => {
+    setAppliedSearchTerm(searchTerm);
+    setAppliedCategoryFilter(categoryFilter);
+    setAppliedGenreFilter(genreFilter);
+    setCurrentPage(1);
+  };
 
-  // ----------------------------------------------
-  // 5. Render
-  // ----------------------------------------------
+  // Stany dla filtrów (selecty)
+  const [categories, setCategories] = useState<{ categoryId: number; namePl: string }[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+
   if (isLoading) {
     return <p>Ładowanie produktów...</p>;
   }
@@ -171,30 +184,33 @@ const Products = () => {
   if (error) {
     return <p>Błąd: {error}</p>;
   }
+
   function openEditModal(product: Product) {
     setEditingProduct(product);
     editDisclosure.onOpen();
   }
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      {/* Przekazujemy do NavbarProducts również userRole, aby tam ukryć przycisk dodawania produktu, jeśli użytkownik to employee */}
       <NavbarProducts
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         categoryFilter={categoryFilter}
         setCategoryFilter={setCategoryFilter}
-        speciesFilter={speciesFilter}
-        setSpeciesFilter={setSpeciesFilter}
+        genreFilter={genreFilter}
+        setGenreFilter={setGenreFilter}
+        categories={categories}
+        genres={genres}
         onOpen={onOpen}
+        onFilter={handleFilter}
+        userRole={userRole} // Dodajemy userRole
       />
 
       <main className="p-4">
         <div className="grid grid-cols-1 gap-4">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.bookId}
-              className="border rounded-md bg-white shadow-sm p-4"
-            >
+          {products.map((product) => (
+            <div key={product.bookId} className="border rounded-md bg-white shadow-sm p-4">
               <div className="grid grid-cols-8 gap-4 items-center text-base text-gray-800">
                 <div className="flex justify-center">
                   <img
@@ -229,7 +245,7 @@ const Products = () => {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {/* Szczegóły */}
+                  {/* Przycisk podglądu szczegółów – widoczny dla wszystkich */}
                   <Button
                     className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex justify-center items-center"
                     onPress={() => {
@@ -240,29 +256,32 @@ const Products = () => {
                     <FaInfoCircle size={20} />
                   </Button>
 
-                  {/* Edytuj */}
-                  <Button
-                    className="p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex justify-center items-center"
-                    onPress={() => openEditModal(product)}
-                  >
-                    <FaEdit size={20} />
-                  </Button>
+                  {/* Przycisk edycji – renderowany tylko, gdy rola to ROLE_ADMIN */}
+                  {userRole === "ROLE_ADMIN" && (
+                    <Button
+                      className="p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex justify-center items-center"
+                      onPress={() => openEditModal(product)}
+                    >
+                      <FaEdit size={20} />
+                    </Button>
+                  )}
 
-                  {/* Usuń */}
-                  <Button
-                    className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 flex justify-center items-center"
-                    onPress={() => confirmDeleteProduct(product)}
-                  >
-                    <FaTrashAlt size={20} />
-                  </Button>
+                  {/* Przycisk usuwania – renderowany tylko, gdy rola to ROLE_ADMIN */}
+                  {userRole === "ROLE_ADMIN" && (
+                    <Button
+                      className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 flex justify-center items-center"
+                      onPress={() => confirmDeleteProduct(product)}
+                    >
+                      <FaTrashAlt size={20} />
+                    </Button>
+                  )}
                 </div>
-
               </div>
             </div>
           ))}
         </div>
 
-        {filteredProducts.length === 0 && (
+        {products.length === 0 && (
           <p className="text-gray-500 mt-4">Brak produktów spełniających kryteria.</p>
         )}
 
@@ -279,13 +298,8 @@ const Products = () => {
         )}
       </main>
 
-      <Modal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        isDismissable={false}
-        size="5xl"
-        scrollBehavior="outside"
-      >
+      {/* Modal dodawania produktu */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false} size="5xl" scrollBehavior="outside">
         <ModalContent>
           <ModalBody>
             <AddProduct />
@@ -293,16 +307,10 @@ const Products = () => {
         </ModalContent>
       </Modal>
 
-      <Modal
-        isOpen={detailsDisclosure.isOpen}
-        onOpenChange={detailsDisclosure.onOpenChange}
-        size="5xl"
-        scrollBehavior="outside"
-      >
+      {/* Modal szczegółów produktu */}
+      <Modal isOpen={detailsDisclosure.isOpen} onOpenChange={detailsDisclosure.onOpenChange} size="5xl" scrollBehavior="outside">
         <ModalContent>
-          <ModalHeader>
-            {selectedProduct ? selectedProduct.titlePl : "Szczegóły produktu"}
-          </ModalHeader>
+          <ModalHeader>{selectedProduct ? selectedProduct.titlePl : "Szczegóły produktu"}</ModalHeader>
           <ModalBody>
             {selectedProduct ? (
               <ProductDetails product={selectedProduct} />
@@ -313,12 +321,8 @@ const Products = () => {
         </ModalContent>
       </Modal>
 
-      <Modal
-        isOpen={editDisclosure.isOpen}
-        onOpenChange={editDisclosure.onOpenChange}
-        size="5xl"
-        scrollBehavior="outside"
-      >
+      {/* Modal edycji produktu */}
+      <Modal isOpen={editDisclosure.isOpen} onOpenChange={editDisclosure.onOpenChange} size="5xl" scrollBehavior="outside">
         <ModalContent>
           <ModalBody>
             {editingProduct && (
@@ -333,6 +337,7 @@ const Products = () => {
         </ModalContent>
       </Modal>
 
+      {/* Modal potwierdzenia usunięcia */}
       <Modal
         isOpen={deleteConfirmation.isOpen}
         onOpenChange={() => setDeleteConfirmation({ isOpen: false, product: null })}
@@ -364,4 +369,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default withAuth(Products, ["ROLE_ADMIN", "ROLE_EMPLOYEE"]);

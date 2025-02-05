@@ -36,7 +36,7 @@ const UserProfile: React.FC = () => {
 
     setDeleting(true);
     try {
-      await deleteReviewServer(token, selectedReviewId);
+      await deleteReviewServer(selectedReviewId);
       // Po udanym usunięciu, odśwież dane użytkownika
       if (userData) {
         setUserData({
@@ -77,8 +77,9 @@ const UserProfile: React.FC = () => {
       }
 
       try {
-        const data = await fetchUserProfileServer(token);
+        const data = await fetchUserProfileServer();
         setUserData(data);
+        console.log(data);
       } catch (error: unknown) {
         console.error("Błąd podczas pobierania danych użytkownika:", error);
         if (error instanceof Error) {

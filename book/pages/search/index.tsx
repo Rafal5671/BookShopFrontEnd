@@ -9,13 +9,13 @@ import {
   DropdownTrigger,
   Pagination
 } from "@nextui-org/react";
-import { FaSort } from "react-icons/fa";
+import { FaSort, FaStar } from "react-icons/fa";
 import SidebarFilters from "@/components/client/search/SidebarFilters";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/hooks/CartContext";
 
 
-import { Filters,PaginatedResponse,Product,Review,Author,Genre,Category } from "@/types/types";
+import { Filters, PaginatedResponse, Product, Review, Author, Genre, Category } from "@/types/types";
 
 const SearchPage: React.FC = () => {
   const router = useRouter();
@@ -302,7 +302,18 @@ const SearchPage: React.FC = () => {
   const getAuthors = (authors: Author[]): string => {
     return authors.map((author) => `${author.firstName} ${author.lastName}`).join(", ");
   };
-  const {addToCart} = useCart();
+  const { addToCart } = useCart();
+  const displayPublisherNames = (product: Product): string => {
+    if (Array.isArray(product.publisher)) {
+      return product.publisher.length > 0
+        ? product.publisher.map((p) => p.name).join(", ")
+        : "Brak wydawcy";
+    }
+    if (product.publisher && product.publisher.name) {
+      return product.publisher.name;
+    }
+    return "Brak wydawcy";
+  };
   // Funkcja do obsługi dodawania do koszyka (placeholder)
   const handleAddToCart = (book: Product) => {
     // Implementacja logiki dodawania do koszyka
@@ -397,13 +408,49 @@ const SearchPage: React.FC = () => {
                       </h4>
                     </Link>
                     <p className="text-sm mb-2">{getAuthors(book.authors)}</p>
-                    <p className="mb-2">
-                      {t("averageRating")}: <span className="font-bold">{getAverageRating(book.reviews)} / 10</span>
+
+                    {/* Dodatkowe informacje */}
+                    <p className="text-sm mb-2">
+                      <strong>{t("publisher")}:</strong> {displayPublisherNames(book)}
+                    </p>
+                    <p className="text-sm mb-2">
+                      <strong>{t("numberOfPages")}:</strong> {book.pagesCount}
+                    </p>
+                    <p className="text-sm mb-2">
+                      <strong>{t("language")}:</strong> {book.language}
+                    </p>
+                    <p className="text-sm mb-2">
+                      <strong>{t("coverType")}:</strong> {book.coverType}
+                    </p>
+                    <p className="text-sm mb-2">
+                      <strong>{t("releaseDate")}:</strong>{" "}
+                      {new Date(book.releaseDate).toLocaleDateString("pl-PL", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric"
+                      })}
                     </p>
                   </div>
 
                   {/* Akcje książki */}
                   <div className="sm:w-1/3 sm:ml-4 flex flex-col justify-end">
+                    {/* Blok średniej oceny */}
+                    <div className="bg-primary-100 p-4 rounded-lg  flex flex-col items-center mb-4">
+                      <div className="text-center mt-4">
+                        <span className="text-lg font-semibold">{t("averageRating")}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-red-500 text-4xl">
+                          <FaStar />
+                        </span>
+                        <span id="rating-value" className="text-2xl">
+                          {getAverageRating(book.reviews)}
+                        </span>
+                        <span className="text-xl">/ 10</span>
+                      </div>
+                    </div>
+
+                    {/* Cena książki */}
                     <p className="text-lg font-bold">
                       {book.discountPrice ? (
                         <>
@@ -414,6 +461,7 @@ const SearchPage: React.FC = () => {
                         `${book.price} PLN`
                       )}
                     </p>
+                    {/* Przycisk dodawania do koszyka */}
                     <Button
                       color="default"
                       size="sm"
@@ -425,6 +473,7 @@ const SearchPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+
 
               {/* Paginacja */}
               <div className="flex justify-center mt-6">

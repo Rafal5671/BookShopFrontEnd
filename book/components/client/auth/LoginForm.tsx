@@ -10,6 +10,7 @@ import { handleLogin } from '../../server/auth/LoginApi';
 import { useLoginSchema } from '../../server/auth/LoginSchema';
 import { useTranslation } from '@/hooks/useTranslation';
 import { LoginData } from '@/types/types';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LoginFormProps {
   showGuestOrderButton?: boolean;
@@ -19,6 +20,7 @@ interface LoginFormProps {
 
 interface User {
   email: string;
+  role:string;
 }
 
 const LoginForm = ({ showGuestOrderButton = false, onGuestOrder, handleLoginOn }: LoginFormProps) => {
@@ -34,15 +36,20 @@ const LoginForm = ({ showGuestOrderButton = false, onGuestOrder, handleLoginOn }
   } = useForm<LoginData>({ resolver: zodResolver(schema) as Resolver<LoginData> });
 
   const [user, setUser] = useState<User | null>(null);
-
+  const { login } = useAuth();
   const onSubmit: SubmitHandler<LoginData> = async (data) => {
     try {
-      const { userEmail, token } = await handleLogin(data);
-
-      if (token && userEmail) {
-        localStorage.setItem('authToken', token);
-        setUser({ email: userEmail });
-
+      const { userEmail, userRole, accessToken, refreshToken } = await handleLogin(data);
+      
+      if (accessToken && userEmail && userRole) {
+        // Zapisz token i rolę w kontekście (AuthProvider zajmie się też zapisem w localStorage)
+        login(accessToken, userRole);
+          
+        // Opcjonalnie zapisujemy refreshToken
+        if (refreshToken) {
+          localStorage.setItem('refreshToken', refreshToken);
+        }
+  
         if (showGuestOrderButton && handleLoginOn) {
           handleLoginOn();
           router.push('/delivery');
@@ -54,6 +61,7 @@ const LoginForm = ({ showGuestOrderButton = false, onGuestOrder, handleLoginOn }
       console.error('Błąd logowania:', error);
     }
   };
+  
 
   return (
     <div className="h-auto flex items-center justify-center p-4">

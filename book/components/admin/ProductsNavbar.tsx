@@ -1,19 +1,23 @@
 import React from "react";
-import {
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-} from "@nextui-org/react";
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from "@nextui-org/react";
+
+interface Genre {
+  genreId: number;
+  name: string;
+}
 
 interface NavbarProductsProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   categoryFilter: string;
   setCategoryFilter: React.Dispatch<React.SetStateAction<string>>;
-  speciesFilter: string;
-  setSpeciesFilter: React.Dispatch<React.SetStateAction<string>>;
-  onOpen: () => void; // Dodane do obsługi modala
+  genreFilter: string;
+  setGenreFilter: React.Dispatch<React.SetStateAction<string>>;
+  categories: { categoryId: number; namePl: string }[];
+  genres: Genre[];
+  onOpen: () => void;
+  onFilter: () => void;
+  userRole: string | null;
 }
 
 const NavbarProducts: React.FC<NavbarProductsProps> = ({
@@ -21,12 +25,16 @@ const NavbarProducts: React.FC<NavbarProductsProps> = ({
   setSearchTerm,
   categoryFilter,
   setCategoryFilter,
-  speciesFilter,
-  setSpeciesFilter,
+  genreFilter,
+  setGenreFilter,
+  categories,
+  genres,
   onOpen,
+  onFilter,
+  userRole,
 }) => {
   return (
-    <Navbar shouldHideOnScroll isBlurred={false} >
+    <Navbar shouldHideOnScroll isBlurred={false}>
       <NavbarBrand>
         <h2 className="text-xl font-bold mb-4">Produkty</h2>
       </NavbarBrand>
@@ -49,32 +57,43 @@ const NavbarProducts: React.FC<NavbarProductsProps> = ({
             className="border px-2 py-1 rounded"
           >
             <option value="">Wybierz kategorię</option>
-            <option value="Kategoria 1">Kategoria 1</option>
-            <option value="Kategoria 2">Kategoria 2</option>
+            {categories.map((category) => (
+              <option key={category.categoryId} value={category.categoryId}>
+                {category.namePl}
+              </option>
+            ))}
           </select>
         </NavbarItem>
 
         <NavbarItem>
           <select
-            value={speciesFilter}
-            onChange={(e) => setSpeciesFilter(e.target.value)}
+            value={genreFilter}
+            onChange={(e) => setGenreFilter(e.target.value)}
             className="border px-2 py-1 rounded"
           >
             <option value="">Wybierz gatunek</option>
-            <option value="Gatunek A">Gatunek A</option>
-            <option value="Gatunek B">Gatunek B</option>
-            <option value="Gatunek C">Gatunek C</option>
+            {genres.map((genre) => (
+              <option key={genre.genreId} value={genre.genreId}>
+                {genre.name}
+              </option>
+            ))}
           </select>
         </NavbarItem>
 
         <NavbarItem>
-        <button
-          onClick={onOpen}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Dodaj produkt
+          <button onClick={onFilter} className="bg-blue-500 text-white px-4 py-2 rounded">
+            Filtruj
           </button>
         </NavbarItem>
+
+        {/* Przycisk "Dodaj produkt" widoczny tylko dla administratora */}
+        {userRole === "ROLE_ADMIN" && (
+          <NavbarItem>
+            <button onClick={onOpen} className="bg-blue-500 text-white px-4 py-2 rounded">
+              Dodaj produkt
+            </button>
+          </NavbarItem>
+        )}
       </NavbarContent>
     </Navbar>
   );

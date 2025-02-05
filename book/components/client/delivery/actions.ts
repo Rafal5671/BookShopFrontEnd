@@ -1,20 +1,17 @@
 "use server";
 
+import { fetchWithAuth } from "@/auth/apiClient";
+
 /**
  * Tworzy zamówienie w backendzie.
  * 
- * @param token - token uwierzytelniający
  * @param orderData - dane zamówienia (items, address, amount)
  */
-export async function createOrderServer(token: string, orderData: any) {
-  if (!token) {
-    throw new Error("Brak tokenu (createOrderServer). Zaloguj się ponownie.");
-  }
-
-  const response = await fetch("http://localhost:8080/api/orders", {
+export async function createOrderServer(orderData: any) {
+  // Używamy fetchWithAuth, który sam dołączy token z localStorage
+  const response = await fetchWithAuth("http://localhost:8080/api/orders", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(orderData),
@@ -31,21 +28,13 @@ export async function createOrderServer(token: string, orderData: any) {
 
 /**
  * Pobiera dane użytkownika (opcjonalne).
- * 
- * @param token - token JWT
  */
-export async function fetchCustomerDataServer(token: string) {
-  if (!token) {
-    throw new Error("Brak tokenu (fetchCustomerDataServer).");
-  }
-
-  const response = await fetch("http://localhost:8080/api/customers/me", {
+export async function fetchCustomerDataServer() {
+  // Używamy fetchWithAuth, który dołączy token z localStorage
+  const response = await fetchWithAuth("http://localhost:8080/api/customers/me", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
-
+  console.log(response);
   if (!response.ok) {
     throw new Error("Błąd podczas pobierania danych użytkownika.");
   }

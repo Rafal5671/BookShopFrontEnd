@@ -1,17 +1,25 @@
 "use server";
-import { Product,Review } from "@/types/types";
+
+import { fetchWithAuth } from "@/auth/apiClient";
+import { Product, Review } from "@/types/types";
 
 /**
- * Pobiera produkt na podstawie ID
+ * Pobiera produkt na podstawie ID.
  */
-export async function fetchProductById(productId: string, lang: string = "pl"): Promise<Product> {
+export async function fetchProductById(
+  productId: string,
+  lang: string = "pl"
+): Promise<Product> {
   try {
-    const res = await fetch(`http://localhost:8080/api/books/${productId}?lang=${lang}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await fetchWithAuth(
+      `http://localhost:8080/api/books/${productId}?lang=${lang}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!res.ok) {
       throw new Error(`Failed to fetch product with ID: ${productId}`);
@@ -31,16 +39,18 @@ export async function fetchProductById(productId: string, lang: string = "pl"): 
 }
 
 /**
- * Pobiera recenzję zalogowanego użytkownika
+ * Pobiera recenzję zalogowanego użytkownika.
  */
-export async function fetchUserReview(productId: string, token: string): Promise<Review | null> {
+export async function fetchUserReview(
+  productId: string
+): Promise<Review | null> {
   try {
-    const res = await fetch(`http://localhost:8080/api/reviews/${productId}/me`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetchWithAuth(
+      `http://localhost:8080/api/reviews/${productId}/me`,
+      {
+        method: "GET",
+      }
+    );
 
     if (res.status === 401) {
       console.warn("Token JWT wygasł. Brak dostępu do recenzji użytkownika.");
@@ -72,13 +82,16 @@ export async function fetchUserReview(productId: string, token: string): Promise
 }
 
 /**
- * Pobiera wszystkie recenzje dla produktu
+ * Pobiera wszystkie recenzje dla produktu.
  */
 export async function fetchAllReviews(productId: string): Promise<Review[]> {
   try {
-    const res = await fetch(`http://localhost:8080/api/reviews/book-reviews/${productId}`, {
-      method: "GET",
-    });
+    const res = await fetchWithAuth(
+      `http://localhost:8080/api/reviews/book-reviews/${productId}`,
+      {
+        method: "GET",
+      }
+    );
 
     if (!res.ok) {
       throw new Error(`Failed to fetch reviews for product ID: ${productId}`);
@@ -100,18 +113,25 @@ export async function fetchAllReviews(productId: string): Promise<Review[]> {
 }
 
 /**
- * Aktualizuje recenzję użytkownika
+ * Aktualizuje recenzję użytkownika.
  */
-export async function updateUserReview(productId: string, reviewId: number, token: string, newContent: string, newRating: number): Promise<void> {
+export async function updateUserReview(
+  productId: string,
+  reviewId: number,
+  newContent: string,
+  newRating: number
+): Promise<void> {
   try {
-    const res = await fetch(`http://localhost:8080/api/reviews/${reviewId}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ content: newContent, rating: newRating }),
-    });
+    const res = await fetchWithAuth(
+      `http://localhost:8080/api/reviews/${reviewId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: newContent, rating: newRating }),
+      }
+    );
 
     if (!res.ok) {
       throw new Error(`Failed to update review ID: ${reviewId}`);
@@ -125,16 +145,16 @@ export async function updateUserReview(productId: string, reviewId: number, toke
 }
 
 /**
- * Usuwa recenzję użytkownika
+ * Usuwa recenzję użytkownika.
  */
-export async function deleteUserReview(reviewId: string, token: string): Promise<void> {
+export async function deleteUserReview(reviewId: string): Promise<void> {
   try {
-    const res = await fetch(`http://localhost:8080/api/reviews/${reviewId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await fetchWithAuth(
+      `http://localhost:8080/api/reviews/${reviewId}`,
+      {
+        method: "DELETE",
+      }
+    );
 
     if (!res.ok) {
       throw new Error(`Failed to delete review ID: ${reviewId}`);

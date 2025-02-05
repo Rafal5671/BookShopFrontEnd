@@ -15,21 +15,28 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
     throw new Error('Logowanie nie powiodło się');
   }
 
-  return await response.json();
+  // Oczekujemy obiektu: { "accessToken": "...", "refreshToken": "..." }
+  return response.json() as Promise<LoginResponse>;
 };
 
 export const handleLogin = async (data: LoginData): Promise<AuthResult> => {
   try {
     const result = await loginUser(data);
-    const token = result.token;
+    const { accessToken, refreshToken } = result;
 
-    if (token) {
-      const decodedToken = jwtDecode(token);
+    if (accessToken) {
+      const decodedToken: any = jwtDecode(accessToken);
       const userEmail = decodedToken.sub || '';
-      return { userEmail, token };
+      const userRole = decodedToken.role || '';
+      return {
+        userEmail,
+        userRole,
+        accessToken,
+        refreshToken: refreshToken || null,
+      };
     } else {
-      console.error('Brak tokenu w odpowiedzi');
-      return { userEmail: null, token: null };
+      console.error('Brak accessToken w odpowiedzi');
+      return { userRole:null, userEmail: null, accessToken: null, refreshToken: null };
     }
   } catch (error) {
     console.error('Błąd logowania:', error);

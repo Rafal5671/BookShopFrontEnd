@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useTransition,
+  useCallback,
+  ChangeEvent,
+} from "react";
 import {
   Input,
   Button,
@@ -12,11 +18,11 @@ import {
   Progress,
 } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
 import { createOrderServer, fetchCustomerDataServer } from "@/components/client/delivery/actions";
 import { loadStripe } from "@stripe/stripe-js";
-
 import { FormData } from "@/types/types";
+import LoginForm from "@/components/client/auth/LoginForm";
+import { useAuth } from "@/hooks/useAuth"; // Używamy hooka z AuthProvider
 
 type Product = {
   bookId: number;
@@ -25,10 +31,16 @@ type Product = {
   quantity: number;
 };
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
-export default function DeliveryPage() {
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
+);
+
+const DeliveryPage: React.FC = () => {
+  // Pobieramy dane z kontekstu uwierzytelnienia
+  const { token, loading } = useAuth();
+
   // -----------------------------
-  // 1. Stan i router
+  // 1. Stan komponentu i router
   // -----------------------------
   const [step, setStep] = useState<number>(1);
   const [formData, setFormData] = useState<FormData>({
@@ -44,26 +56,56 @@ export default function DeliveryPage() {
     paymentMethod: "online",
     agreement: false,
   });
-
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userData, setUserData] = useState<any>(null);
   const [orderAsGuest, setOrderAsGuest] = useState<boolean>(false);
-
-  const [cart, setCart] = useState<Product[]>([]); 
-
+  const [cart, setCart] = useState<Product[]>([]);
   const router = useRouter();
-
-  // Server Actions w React 18 – useTransition
   const [isPending, startTransition] = useTransition();
 
   // -----------------------------
-  // 2. Odczyt koszyka z localStorage
+  // 2. Pobieranie danych użytkownika (jeśli token istnieje)
+  // -----------------------------
+  const fetchUserData = useCallback(
+    (token: string) => {
+      startTransition(async () => {
+        try {
+          const data = await fetchCustomerDataServer();
+          console.log("Fetched user data:", data);
+          setUserData(data);
+          setFormData((prev) => ({
+            ...prev,
+            firstName: data.firstName || prev.firstName,
+            lastName: data.lastName || prev.lastName,
+            phone: data.phone || prev.phone,
+            email: data.email || prev.email,
+            street: data.address?.street || prev.street,
+            postalCode: data.address?.postalCode || prev.postalCode,
+            city: data.address?.city || prev.city,
+            country: data.address?.country || prev.country,
+          }));
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      });
+    },
+    [startTransition]
+  );
+
+  useEffect(() => {
+    // Jeśli mamy token z AuthProvider, pobieramy dane użytkownika
+    if (token) {
+      fetchUserData(token);
+    }
+  }, [token, fetchUserData]);
+
+  // -----------------------------
+  // 3. Odczyt koszyka z localStorage
   // -----------------------------
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
       try {
-        const parsedCart = JSON.parse(storedCart);
+        const parsedCart: Product[] = JSON.parse(storedCart);
         setCart(parsedCart);
       } catch (error) {
         console.error("Error parsing cart data:", error);
@@ -77,84 +119,32 @@ export default function DeliveryPage() {
 
   // Pomocnicza funkcja do sumy koszyka
   const getTotalPrice = (): number => {
-    return cart.reduce((total, product) => total + product.price * product.quantity, 0);
+    return cart.reduce(
+      (total, product) => total + product.price * product.quantity,
+      0
+    );
   };
 
   // -----------------------------
-  // 3. Autoryzacja – sprawdzanie tokena
+  // 4. Obsługa zamówienia jako gość / logowanie
   // -----------------------------
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      try {
-        const decodedToken: any = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-
-        if (decodedToken.exp && decodedToken.exp < currentTime) {
-          // Token wygasł
-          setIsLoggedIn(false);
-          localStorage.removeItem("authToken");
-        } else {
-          // Token jest ważny
-          setIsLoggedIn(true);
-          // Pobierz dane użytkownika z server action:
-          fetchUserData(token);
-        }
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        setIsLoggedIn(false);
-      }
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, []);
-
-  // -----------------------------
-  // 4. Pobieranie danych użytkownika z server action
-  // -----------------------------
-  const fetchUserData = useCallback((token: string) => {
-    startTransition(async () => {
-      try {
-        const data = await fetchCustomerDataServer(token);
-        console.log("Fetched user data:", data);
-
-        setUserData(data);
-        // Uzupełnij formData danymi z bazy, jeśli istnieją:
-        setFormData((prev) => ({
-          ...prev,
-          firstName: data.firstName || prev.firstName,
-          lastName: data.lastName || prev.lastName,
-          phone: data.phone || prev.phone,
-          email: data.email || prev.email,
-          street: data.address?.street || prev.street,
-          postalCode: data.address?.postalCode || prev.postalCode,
-          city: data.address?.city || prev.city,
-          country: data.address?.country || prev.country,
-        }));
-      } catch (err) {
-        console.error("Error fetching user data:", err);
-      }
-    });
-  }, []);
-
-  // Obsługa zamówienia jako gość
   const handleOrderAsGuest = () => {
     setOrderAsGuest(true);
   };
 
-  // Po zalogowaniu z LoginForm
+  // Po zalogowaniu – pobieramy dane użytkownika (AuthProvider ustawia token)
   const handleLoginOn = () => {
-    setIsLoggedIn(true);
-    const token = localStorage.getItem("authToken");
-    if (token) fetchUserData(token);
+    if (token) {
+      fetchUserData(token);
+    }
   };
 
   // -----------------------------
-  // 5. Obsługa formularza i kroków
+  // 5. Obsługa formularza – zmiana pól i przechodzenie między krokami
   // -----------------------------
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCountryChange = (selectedCountry: string) => {
@@ -164,18 +154,9 @@ export default function DeliveryPage() {
     }));
   };
 
-  const handleNextStep = () => {
-    setStep((prev) => prev + 1);
-  };
-
-  const handlePreviousStep = () => {
-    setStep((prev) => prev - 1);
-  };
-
-  // Pasek postępu
-  const getProgressPercentage = (): number => {
-    return (step / 3) * 100;
-  };
+  const handleNextStep = () => setStep((prev) => prev + 1);
+  const handlePreviousStep = () => setStep((prev) => prev - 1);
+  const getProgressPercentage = (): number => (step / 3) * 100;
 
   // -----------------------------
   // 6. Tworzenie zamówienia (Server Action)
@@ -194,58 +175,60 @@ export default function DeliveryPage() {
       })),
       amount: getTotalPrice(),
     };
-  
-    const token = localStorage.getItem("authToken") || "";
-  
+
+    // Token nie jest tu używany do weryfikacji, ale możesz go przekazać w zapytaniu, jeśli backend tego wymaga
     startTransition(async () => {
       try {
-        // Wywołujemy funkcję tworzącą zamówienie i CheckoutSession na backendzie
-        const result = await createOrderServer(token, orderData);
+        const result = await createOrderServer(orderData);
         console.log("createOrderServer result:", result);
-  
-        // Zakładamy, że backend zwraca { orderId, url }
-        const { orderId, url } = result;
+        const { url } = result;
         if (!url) {
-          console.warn("Brak 'url' w odpowiedzi z backendu (Stripe Checkout).");
+          console.warn(
+            "Brak 'url' w odpowiedzi z backendu (Stripe Checkout)."
+          );
         }
-  
-        // Jeśli paymentMethod = "online", przekierowujemy na URL Stripe Checkout:
-        if (formData.paymentMethod === "online") {
-          // 1. Usuwamy z kodu confirmCardPayment i płatność kartą u siebie,
-          //    bo teraz wszystko dzieje się na stronie Stripe.
-          window.location.href = url; // przenosi na Stripe Checkout
+
+        if (formData.paymentMethod === "online" && url) {
+          window.location.href = url;
         } else {
-          // Płatność gotówką/przy odbiorze, itp.
           alert("Zamówienie zostało złożone – płatność przy odbiorze.");
           localStorage.removeItem("cart");
           router.push("/confirmation");
         }
       } catch (error: any) {
         console.error("Błąd podczas składania zamówienia:", error);
-        alert(`Wystąpił problem podczas składania zamówienia: ${error.message ?? "Nieznany błąd"}`);
+        alert(
+          `Wystąpił problem podczas składania zamówienia: ${
+            error.message ?? "Nieznany błąd"
+          }`
+        );
       }
     });
   };
-  
 
   // -----------------------------
-  // 7. Jeśli użytkownik nie jest zalogowany i nie wybrał opcji gościa, pokaż formularz logowania
+  // 7. Render – obsługa ładowania oraz logowania
   // -----------------------------
-  if (!isLoggedIn && !orderAsGuest) {
+  if (loading) {
+    return <div>Ładowanie...</div>;
+  }
+
+  // Jeśli użytkownik nie jest zalogowany (token nie istnieje) i nie zamawia jako gość,
+  // wyświetlamy formularz logowania.
+  if (!token && !orderAsGuest) {
     return (
       <div>
-        {/* 
-          W Twoim kodzie to jest <LoginForm showGuestOrderButton onGuestOrder={handleOrderAsGuest} ... />
-          Tu tylko symbolicznie.
-        */}
-        <p>Tu będzie LoginForm lub przycisk „Zamawiam jako gość”.</p>
-        <Button onPress={handleOrderAsGuest}>Zamawiam jako gość</Button>
+        <LoginForm
+          showGuestOrderButton={true}
+          onGuestOrder={handleOrderAsGuest}
+          handleLoginOn={handleLoginOn}
+        />
       </div>
     );
   }
 
   // -----------------------------
-  // 8. Render wieloetapowego formularza
+  // 8. Render – wieloetapowy formularz zamówienia
   // -----------------------------
   return (
     <div className="max-w-4xl mt-10 mb-10 mx-auto p-8 bg-primary-200 rounded-lg shadow-lg">
@@ -260,19 +243,13 @@ export default function DeliveryPage() {
           aria-label="Postęp zamówienia"
         />
         <div className="flex justify-between text-sm mt-2">
-          <span
-            className={step === 1 ? "font-bold text-primary" : "text-gray-500"}
-          >
+          <span className={step === 1 ? "font-bold text-primary" : "text-gray-500"}>
             Dane Adresowe
           </span>
-          <span
-            className={step === 2 ? "font-bold text-primary" : "text-gray-500"}
-          >
+          <span className={step === 2 ? "font-bold text-primary" : "text-gray-500"}>
             Metoda Odbioru
           </span>
-          <span
-            className={step === 3 ? "font-bold text-primary" : "text-gray-500"}
-          >
+          <span className={step === 3 ? "font-bold text-primary" : "text-gray-500"}>
             Podsumowanie Zamówienia
           </span>
         </div>
@@ -288,7 +265,7 @@ export default function DeliveryPage() {
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
-              readOnly={isLoggedIn && userData?.firstName}
+              readOnly={!!(token && userData?.firstName)}
             />
             <Input
               label="Nazwisko"
@@ -296,7 +273,7 @@ export default function DeliveryPage() {
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
-              readOnly={isLoggedIn && userData?.lastName}
+              readOnly={!!(token && userData?.lastName)}
             />
             <Input
               label="Numer telefonu"
@@ -304,7 +281,7 @@ export default function DeliveryPage() {
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              readOnly={isLoggedIn && userData?.phone}
+              readOnly={!!(token && userData?.phone)}
             />
             <Input
               label="Email"
@@ -312,7 +289,7 @@ export default function DeliveryPage() {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              readOnly={isLoggedIn && userData?.email}
+              readOnly={!!(token && userData?.email)}
             />
 
             <Select
@@ -377,9 +354,12 @@ export default function DeliveryPage() {
           <h2 className="text-xl font-semibold mb-4">Metoda wysyłki</h2>
           <RadioGroup
             value={formData.deliveryMethod}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setFormData({ ...formData, deliveryMethod: e.target.value });
-            }}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setFormData((prev) => ({
+                ...prev,
+                deliveryMethod: e.target.value,
+              }))
+            }
             label="Wybierz metodę dostawy"
           >
             <Radio value="courier">Kurier</Radio>
@@ -390,9 +370,12 @@ export default function DeliveryPage() {
           <div className="mt-6">
             <RadioGroup
               value={formData.paymentMethod}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setFormData({ ...formData, paymentMethod: e.target.value });
-              }}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  paymentMethod: e.target.value,
+                }))
+              }
               label="Wybierz metodę płatności"
             >
               <Radio value="online">Płatność online (Stripe)</Radio>
@@ -459,7 +442,7 @@ export default function DeliveryPage() {
             className="mt-4"
             isSelected={formData.agreement}
             onChange={(isSelected) =>
-              setFormData({ ...formData, agreement: !!isSelected })
+              setFormData((prev) => ({ ...prev, agreement: !!isSelected }))
             }
           >
             Akceptuję regulamin zakupów
@@ -481,4 +464,6 @@ export default function DeliveryPage() {
       )}
     </div>
   );
-}
+};
+
+export default DeliveryPage;

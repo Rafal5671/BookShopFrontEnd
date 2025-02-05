@@ -13,7 +13,8 @@ import {
 import NavbarAuthors from "./NavbarAuthors";
 import AddAuthor from "./AddAuthor";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchAuthorsServer,deleteAuthorServer } from "../server/admin/authors/actions";
+import { fetchAuthorsServer, deleteAuthorServer } from "../server/admin/authors/actions";
+import { withAuth } from "../server/auth/withAuth";
 
 export type Author = {
   authorId: number;
@@ -28,6 +29,11 @@ const Authors: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1); // 1-based
   const [totalPages, setTotalPages] = useState(1);
 
+  // Stan, który odzwierciedla aktualną wartość wpisaną w input
+  const [searchTerm, setSearchTerm] = useState("");
+  // Stan, który jest używany do wyszukiwania – aktualizowany dopiero po wciśnięciu Enter
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
+
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     author: Author | null;
@@ -35,20 +41,18 @@ const Authors: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // W React 18 do użycia Server Actions "na żądanie" używamy useTransition:
+  // W React 18 do operacji asynchronicznych "na żądanie" używamy useTransition:
   const [isPending, startTransition] = useTransition();
 
-  // --------------------------------
-  // Funkcja do pobierania autorów
-  // --------------------------------
+  // Funkcja pobierająca autorów – wykorzystujemy appliedSearchTerm
   const fetchAuthors = useCallback(() => {
     if (!token) return;
 
-    // startTransition pozwala wskazać Reactowi, że robimy operację asynchroniczną
     startTransition(async () => {
       try {
-        const data = await fetchAuthorsServer(token, currentPage);
-        // data to obiekt zwrócony przez Twój backend (z polami content, totalPages)
+        const data = await fetchAuthorsServer(currentPage, appliedSearchTerm);
+        console.log("Wyszukiwanie dla:", appliedSearchTerm);
+        // data zawiera obiekt zwrócony przez backend (np. { content, totalPages })
         setAuthors(data.content);
         setTotalPages(data.totalPages);
       } catch (error: any) {
@@ -59,18 +63,19 @@ const Authors: React.FC = () => {
         }
       }
     });
-  }, [token, currentPage, setSessionExpired]);
+  }, [token, currentPage, appliedSearchTerm, setSessionExpired]);
 
-  // --------------------------------
-  // Efekt, który pobiera autorów przy zmianie strony
-  // --------------------------------
+  // Efekt pobierający autorów przy zmianie currentPage lub appliedSearchTerm
   useEffect(() => {
     fetchAuthors();
   }, [fetchAuthors]);
 
-  // --------------------------------
-  // Funkcja do usuwania autora
-  // --------------------------------
+  // Funkcja wywoływana po naciśnięciu Enter – aktualizuje appliedSearchTerm i resetuje stronę do 1
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setAppliedSearchTerm(searchTerm);
+  };
+
   const confirmDeleteAuthor = (author: Author) => {
     setDeleteConfirmation({ isOpen: true, author });
   };
@@ -80,8 +85,7 @@ const Authors: React.FC = () => {
       if (!token) return;
       startTransition(async () => {
         try {
-          await deleteAuthorServer(token, authorId);
-          // Jeśli się udało, usuń autora z lokalnej listy:
+          await deleteAuthorServer(authorId);
           setAuthors((prev) => prev.filter((a) => a.authorId !== authorId));
           setDeleteConfirmation({ isOpen: false, author: null });
         } catch (err) {
@@ -94,11 +98,12 @@ const Authors: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Navbar z przyciskiem "Dodaj autora" */}
+      {/* Navbar z możliwością wyszukiwania oraz przyciskiem "Dodaj autora" */}
       <NavbarAuthors
-        searchTerm=""
-        setSearchTerm={() => {}}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
         onOpen={() => setIsAddModalOpen(true)}
+        onSearch={handleSearch}
       />
 
       <main className="p-6">
@@ -119,9 +124,7 @@ const Authors: React.FC = () => {
                   <h2 className="text-lg font-semibold text-gray-800">
                     {author.firstName} {author.lastName || ""}
                   </h2>
-                  <p className="text-sm text-gray-600">
-                    ID: {author.authorId}
-                  </p>
+                  <p className="text-sm text-gray-600">ID: {author.authorId}</p>
                 </div>
               </div>
               <Button
@@ -205,7 +208,6 @@ const Authors: React.FC = () => {
           <ModalBody>
             <AddAuthor
               onAuthorAdded={() => {
-                // Po dodaniu nowego autora odświeżamy listę
                 fetchAuthors();
                 setIsAddModalOpen(false);
               }}
@@ -217,4 +219,4 @@ const Authors: React.FC = () => {
   );
 };
 
-export default Authors;
+export default withAuth(Authors, ['ROLE_ADMIN', 'ROLE_EMPLOYEE']);

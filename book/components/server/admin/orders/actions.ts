@@ -1,5 +1,6 @@
 "use server";
 
+import { fetchWithAuth } from "@/auth/apiClient";
 import { OrderAdmin,PageResponse } from "@/types/types";
 
 export type SortOption = "dateAsc" | "dateDesc" | "amountAsc" | "amountDesc";
@@ -13,20 +14,16 @@ export type SortOption = "dateAsc" | "dateDesc" | "amountAsc" | "amountDesc";
  * @param sortOption – jak sortujemy (dateAsc, dateDesc, itp.)
  */
 export async function fetchOrdersServer(
-  token: string,
   page: number,
   rowsPerPage: number,
-  sortOption: SortOption
+  sortOption: SortOption,
+  searchTerm?: string,
+  filterStatus?: string
 ): Promise<PageResponse<OrderAdmin>> {
-  if (!token) {
-    throw new Error("Brak tokenu autoryzacji.");
-  }
-
   // Konwersja 1-based -> 0-based
   const springPage = page - 1;
 
-  // Obsługa sortowania
-  let sortBy = "orderDate"; // domyślnie po dacie
+  let sortBy = "orderDate";
   let sortDir = "asc";
 
   switch (sortOption) {
@@ -39,26 +36,35 @@ export async function fetchOrdersServer(
       sortDir = "desc";
       break;
     case "amountAsc":
-      sortBy = "amount"; // uwaga: musisz mieć obsługę w backendzie
+      sortBy = "amount";
       sortDir = "asc";
       break;
     case "amountDesc":
-      sortBy = "amount"; // j.w.
+      sortBy = "amount";
       sortDir = "desc";
       break;
   }
 
-  const response = await fetch(
-    `http://localhost:8080/api/admin/orders?page=${springPage}&size=${rowsPerPage}&sortBy=${sortBy}&sortDir=${sortDir}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  // Budowanie URL z parametrami zapytania
+  const url = new URL("http://localhost:8080/api/admin/orders");
+  url.searchParams.append("page", springPage.toString());
+  url.searchParams.append("size", rowsPerPage.toString());
+  url.searchParams.append("sortBy", sortBy);
+  url.searchParams.append("sortDir", sortDir);
 
+  if (searchTerm) {
+    url.searchParams.append("searchTerm", searchTerm);
+  }
+  if (filterStatus && filterStatus !== "Wszystkie") {
+    url.searchParams.append("filterStatus", filterStatus);
+  }
+
+  const response = await fetchWithAuth(url.toString(), {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
   if (!response.ok) {
     throw new Error("Nie udało się pobrać zamówień.");
   }
@@ -74,21 +80,15 @@ export async function fetchOrdersServer(
  * @param newStatus – status w formie, której oczekuje backend (np. "PAID", "SHIPPED", ...)
  */
 export async function updateOrderStatusServer(
-  token: string,
   orderId: string,
   newStatus: string
 ) {
-  if (!token) {
-    throw new Error("Brak tokenu autoryzacji.");
-  }
-
-  const response = await fetch(
+  const response = await fetchWithAuth(
     `http://localhost:8080/api/admin/orders/${orderId}/status`,
     {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({ status: newStatus }),
     }
@@ -98,6 +98,5 @@ export async function updateOrderStatusServer(
     throw new Error("Nie udało się zaktualizować statusu zamówienia.");
   }
 
-  // Możesz zwrócić np. zaktualizowany obiekt zamówienia, jeśli Twój backend go zwraca
   return response.json();
 }

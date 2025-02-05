@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useContext } from "react";
 import {
   FaHome,
   FaShoppingCart,
@@ -8,9 +8,29 @@ import {
   FaSignOutAlt,
   FaChevronLeft,
   FaChevronRight,
+  FaUsers,
+  FaTags,
+  FaKey,
 } from "react-icons/fa";
+import { AuthContext } from "@/context/AuthContext"; // Upewnij się, że ścieżka jest poprawna
 
-type SectionType = "dashboard" | "orders" | "products" | "editproducts" | "authors" | "publishers" | "users" | "categories";
+// Definicja typów dla sekcji i elementów menu
+export type SectionType =
+  | "dashboard"
+  | "orders"
+  | "products"
+  | "authors"
+  | "publishers"
+  | "users"
+  | "categories"
+  | "tokens";
+
+interface MenuItem {
+  key: SectionType;
+  label: string;
+  roles: string[];
+  icon: React.ElementType;
+}
 
 interface SidebarProps {
   activeSection: SectionType;
@@ -19,15 +39,19 @@ interface SidebarProps {
 
 const Sidebar: FC<SidebarProps> = ({ activeSection, setActiveSection }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const authContext = useContext(AuthContext);
+  const userRole = authContext?.userRole;
 
-  const menuItems = [
-    { icon: FaHome, label: "Dashboard", section: "dashboard" },
-    { icon: FaShoppingCart, label: "Zamówienia", section: "orders" },
-    { icon: FaBook, label: "Produkty", section: "products" },
-    { icon: FaUser, label: "Autorzy", section: "authors" },
-    { icon: FaBuilding, label: "Wydawnictwo", section: "publishers" },
-    { icon: FaUser, label: "Użytkownicy", section: "users" },
-    { icon: FaUser, label: "Kategorie", section: "categories" },
+  // Lista elementów menu z przypisanymi rolami oraz ikonami
+  const menuItems: MenuItem[] = [
+    { key: "dashboard", label: "Dashboard", roles: ["ROLE_ADMIN", "ROLE_EMPLOYEE"], icon: FaHome },
+    { key: "orders", label: "Zamówienia", roles: ["ROLE_ADMIN", "ROLE_EMPLOYEE"], icon: FaShoppingCart },
+    { key: "products", label: "Produkty", roles: ["ROLE_ADMIN", "ROLE_EMPLOYEE"], icon: FaBook },
+    { key: "authors", label: "Autorzy", roles: ["ROLE_ADMIN"], icon: FaUser },
+    { key: "categories", label: "Kategorie", roles: ["ROLE_ADMIN"], icon: FaTags },
+    { key: "publishers", label: "Wydawcy", roles: ["ROLE_ADMIN"], icon: FaBuilding },
+    { key: "users", label: "Użytkownicy", roles: ["ROLE_ADMIN"], icon: FaUsers },
+    { key: "tokens", label: "Tokeny", roles: ["ROLE_ADMIN"], icon: FaKey },
   ];
 
   return (
@@ -67,30 +91,37 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, setActiveSection }) => {
 
       {/* Lista linków */}
       <ul className="pt-6">
-        {menuItems.map((item) => (
-          <li
-            key={item.section}
-            onClick={() => setActiveSection(item.section as SectionType)}
-            className={`
-              flex items-center gap-x-4 rounded-md p-2 mt-2 text-white text-sm cursor-pointer
-              hover:bg-blue-500
-              ${activeSection === item.section ? "bg-blue-500" : ""}
-            `}
-          >
-            <item.icon className="text-xl" />
-            <span
+        {menuItems.map((item) => {
+          // Jeśli użytkownik nie jest zalogowany lub nie ma odpowiedniej roli, nie renderujemy pozycji menu
+          if (!userRole || !item.roles.includes(userRole)) {
+            return null;
+          }
+          const Icon = item.icon;
+          return (
+            <li
+              key={item.key}
+              onClick={() => setActiveSection(item.key)}
               className={`
-                origin-left duration-200
-                ${!isExpanded && "hidden"}
+                flex items-center gap-x-4 rounded-md p-2 mt-2 text-white text-sm cursor-pointer
+                hover:bg-blue-500
+                ${activeSection === item.key ? "bg-blue-500" : ""}
               `}
             >
-              {item.label}
-            </span>
-          </li>
-        ))}
+              <Icon className="text-xl" />
+              <span
+                className={`
+                  origin-left duration-200
+                  ${!isExpanded && "hidden"}
+                `}
+              >
+                {item.label}
+              </span>
+            </li>
+          );
+        })}
       </ul>
 
-      {/* Przykładowy przycisk wylogowania na dole sidebaru */}
+      {/* Przycisk wylogowania */}
       <div className="absolute bottom-4 w-full left-0 px-5">
         <div
           className={`

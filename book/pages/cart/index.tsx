@@ -10,14 +10,13 @@ const Cart = () => {
   const router = useRouter();
   const { t } = useTranslation();
   const handleGoToDelivery = () => {
-    router.push("/delivery"); // Przekierowanie do strony dostawy
+    router.push("/delivery"); 
   };
-  // Obliczanie łącznej ceny
+
   const totalPrice = cart
     .reduce((total, product) => total + product.price * product.quantity, 0)
     .toFixed(2);
 
-  // Obsługuje zwiększanie ilości
   const increaseQuantity = (id: number) => {
     const product = cart.find((product) => product.bookId === id);
     if (product) {
@@ -56,7 +55,7 @@ const Cart = () => {
   useEffect(() => {
     console.log("Produkty w koszyku:");
     cart.forEach((product) => {
-      console.log(`Produkt: ${product.titlePl}, Ilość: ${product.quantity}`);
+      console.log(`Produkt: ${product.title}, Ilość: ${product.quantity}`);
       console.log(product);
     });
   }, [cart]); // useEffect wywołuje się, gdy koszyk się zmienia
@@ -78,7 +77,7 @@ const Cart = () => {
                 <div className="flex-shrink-0">
                   <Image
                     src={product.imageUrl}
-                    alt={product.titlePl}
+                    alt={product.title}
                     className="w-24 h-24 object-containt"
                   />
 
@@ -86,7 +85,7 @@ const Cart = () => {
 
                 {/* Szczegóły produktu */}
                 <div className="flex-1 flex flex-col ml-4">
-                  <span className="text-lg font-bold">{product.titlePl}</span>
+                  <span className="text-lg font-bold">{product.title}</span>
                   <span className="text-lg text-gray-400">
                     {t("pricePerUnit")}: {product.price.toFixed(2)} PLN
                   </span>

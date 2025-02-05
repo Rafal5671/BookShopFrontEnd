@@ -25,13 +25,12 @@ const MegaMenu: FC = () => {
     const { t } = useTranslation();
     const router = useRouter();
     const lang = router.locale || "pl";
-    // Fetch categories from the backend
     useEffect(() => {
         setLoading(true);
         
-        fetch("http://localhost:8080/api/categories/categories", {
+        fetch("http://localhost:8080/api/categories", {
             headers: {
-                "Accept-Language": lang, // Przekazujemy język do backendu
+                "Accept-Language": lang, 
             },
         })
             .then((res) => {
@@ -46,7 +45,7 @@ const MegaMenu: FC = () => {
                 setError(err.message);
                 setLoading(false);
             });
-    }, [lang]); // Przeładowujemy po zmianie języka
+    }, [lang]);
 
     const fetchGenres = (categoryId: number) => {
         setLoadingGenres(true);
@@ -83,10 +82,9 @@ const MegaMenu: FC = () => {
             setGenres([]);
         } else {
             setActiveCatIndex(index);
-            fetchGenres(categoryId); // Fetch genres for the selected category
+            fetchGenres(categoryId);
         }
     };
-    // Helper function to split genres into chunks of 10
     const chunkGenres = (genres: Genre[], size: number) => {
         const chunks = [];
         for (let i = 0; i < genres.length; i += size) {
@@ -95,12 +93,12 @@ const MegaMenu: FC = () => {
         return chunks;
     };
     const handleGenreClick = (genreId: number) => {
-        // Redirect to search page with the genre ID as a query parameter
         router.push(`/search?genreId=${genreId}`);
         setOpen(false);
         setActiveCatIndex(null);
         setGenres([]);
     };
+
     return (
         <div className="bg-black text-white relative">
             <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
@@ -123,7 +121,6 @@ const MegaMenu: FC = () => {
                     {open && (
                         <div className="absolute left-0 top-full z-50 mt-2 bg-white text-black shadow-lg rounded-lg transition-all duration-300">
                             <div className="flex relative p-2">
-                                {/* Categories List */}
                                 <div className="p-4 w-[200px] flex-none flex flex-col rounded-lg">
                                     {loading && <p className="text-sm text-gray-600">{t("loading")}...</p>}
                                     {error && <p className="text-sm text-red-600">{t("error")}: {error}</p>}

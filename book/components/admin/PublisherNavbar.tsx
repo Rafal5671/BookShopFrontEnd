@@ -9,13 +9,15 @@ import {
 interface PublishersNavbarProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  onOpen: () => void; // otwieranie modala dodawania Publisher
+  onOpen: () => void;           // Funkcja otwierająca modal dodawania wydawcy
+  onSearch: () => void;         // Funkcja wywoływana po naciśnięciu Enter
 }
 
 const PublishersNavbar: React.FC<PublishersNavbarProps> = ({
   searchTerm,
   setSearchTerm,
   onOpen,
+  onSearch,
 }) => {
   return (
     <Navbar shouldHideOnScroll isBlurred={false}>
@@ -30,6 +32,11 @@ const PublishersNavbar: React.FC<PublishersNavbarProps> = ({
             placeholder="Wyszukaj wydawcę"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onSearch();
+              }
+            }}
             className="border px-2 py-1 rounded w-full md:w-56"
           />
         </NavbarItem>

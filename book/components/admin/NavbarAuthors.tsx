@@ -9,13 +9,15 @@ import {
 interface NavbarAuthorsProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  onOpen: () => void; // Funkcja otwierająca modal dodawania autora
+  onOpen: () => void;   // Funkcja otwierająca modal dodawania autora
+  onSearch: () => void; // Funkcja wywoływana po naciśnięciu Enter
 }
 
 const NavbarAuthors: React.FC<NavbarAuthorsProps> = ({
   searchTerm,
   setSearchTerm,
   onOpen,
+  onSearch,
 }) => {
   return (
     <Navbar shouldHideOnScroll isBlurred={false}>
@@ -30,6 +32,11 @@ const NavbarAuthors: React.FC<NavbarAuthorsProps> = ({
             placeholder="Wyszukaj autora"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onSearch();
+              }
+            }}
             className="border px-2 py-1 rounded w-full md:w-56"
           />
         </NavbarItem>

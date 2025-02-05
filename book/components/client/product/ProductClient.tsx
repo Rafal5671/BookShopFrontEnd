@@ -9,7 +9,7 @@ import ReviewForm from "@/components/client/product/ReviewForm";
 import { deleteUserReview, fetchAllReviews, fetchUserReview, updateUserReview } from "./actions";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/hooks/CartContext";
-import { Product,Review,Author } from "@/types/types";
+import { Product, Review, Author } from "@/types/types";
 
 interface ProductClientProps {
   product: Product;
@@ -44,7 +44,6 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
   const [userReview, setUserReview] = useState<Review | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const { t } = useTranslation();
-
   const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
   // Funkcja do formatowania daty
@@ -84,12 +83,12 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
   const refreshUserReview = useCallback(async () => {
     if (!token) return;
     try {
-      const fetchedReview = await fetchUserReview(product.bookId.toString(), token);
+      const fetchedReview = await fetchUserReview(product.bookId.toString());
       if (!fetchedReview) {
         console.warn("Nie znaleziono recenzji użytkownika lub token wygasł.");
         return;
       }
-
+      console.log(fetchedReview);
       setUserReview(fetchedReview);
     } catch (error) {
       console.error("Error fetching user review:", error);
@@ -100,6 +99,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
   const fetchReviewsList = useCallback(async () => {
     try {
       const fetchedReviews = await fetchAllReviews(product.bookId.toString());
+      console.log(fetchedReviews);
       setReviews(fetchedReviews);
     } catch (error) {
       console.error("Error fetching reviews:", error);
@@ -116,7 +116,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
   const handleDeleteReview = async () => {
     if (!userReview || !token) return;
     try {
-      await deleteUserReview(userReview.reviewId.toString(), token);
+      await deleteUserReview(userReview.reviewId.toString());
       setUserReview(null);
       fetchReviewsList();
     } catch (error) {
@@ -129,7 +129,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     fetchReviewsList();
     refreshUserReview();
   };
-const { addToCart } = useCart();
+  const { addToCart } = useCart();
   // Funkcja do dodania produktu do koszyka
   const handleAddToCart = () => {
     // Implementacja dodawania do koszyka
@@ -218,8 +218,8 @@ const { addToCart } = useCart();
                   <span className="text-red-500 text-4xl">
                     <FaStar />
                   </span>
-                  <span id="rating-value" className="text-red-500 text-5xl">
-                    {product.rating}
+                  <span id="rating-value" className="text-2xl">
+                    {product.averageRating}
                   </span>
                   <span className="text-xl">/ 10</span>
                 </div>

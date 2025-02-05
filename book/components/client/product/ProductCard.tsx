@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardBody, CardFooter } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
 import { Image } from "@nextui-org/image";
@@ -36,11 +36,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = () => {
     addToCart({ ...product, quantity: 1 });
   };
-
+  const [imgSrc, setImgSrc] = useState<string>(imageUrl || "/book-placeholder.png");
   return (
     <Card className="w-full shadow-lg hover:shadow-2xl transition-shadow duration-300 bg-primary-100 flex flex-col relative">
       {discountPrice && (
-        <div className="absolute top-2 left-2 bg-red-500 text-white text-lg font-bold px-3 py-2 rounded-md z-10">
+        <div className="absolute top-2 left-2 bg-red-500 text-white text-lg font-bold px-3 py-2 rounded-md z-20">
           {t("promotion")}
         </div>
       )}
@@ -49,9 +49,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         onClick={navigateToProductPage}
       >
         <Image
-          className="w-[250px] h-[250px] object-contain transition-transform duration-300 hover:scale-110" // Increased dimensions
-          src={imageUrl || "/default-image.png"}
+          className="w-[250px] h-[250px] object-contain transition-transform duration-300 hover:scale-110"
+          src={imgSrc}
           alt={product.title}
+          // Jeśli wystąpi błąd przy ładowaniu obrazu, ustawiamy obraz zastępczy
+          onError={() => {
+            if (imgSrc !== "/book-placeholder.png") {
+              setImgSrc("/book-placeholder.png");
+            }
+          }}
         />
       </CardHeader>
 

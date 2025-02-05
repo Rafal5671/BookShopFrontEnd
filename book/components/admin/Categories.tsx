@@ -1,5 +1,3 @@
-// src/components/Categories.tsx
-
 import React, { useState, useEffect, useCallback, useTransition } from "react";
 import {
   Pagination,
@@ -15,6 +13,7 @@ import { FaEdit, FaInfoCircle, FaTrashAlt, FaPlus } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
 import AddCategory from "./AddCategory";
 import { addCategoryServer, deleteCategoryServer, fetchCategoriesServer, updateCategoryServer } from "../server/admin/categories/actions";
+import { withAuth } from "../server/auth/withAuth";
 
 export type Category = {
     Id: number;
@@ -75,7 +74,7 @@ const Categories = () => {
 
       startTransition(async () => {
         try {
-          const data = await fetchCategoriesServer(token, page, categoriesPerPage);
+          const data = await fetchCategoriesServer(page, categoriesPerPage);
           setCategories(data.content);
           console.log(categories);
           setTotalPages(data.totalPages);
@@ -101,7 +100,7 @@ const Categories = () => {
     async (nameEn: string, namePl: string) => {
       if (!token) return;
       try {
-        const newCategory = await addCategoryServer(token, nameEn, namePl);
+        const newCategory = await addCategoryServer(nameEn, namePl);
         setCategories((prev) => [newCategory, ...prev]);
         onOpen(false);
       } catch (err: any) {
@@ -119,7 +118,7 @@ const Categories = () => {
       console.log(`Editing category with ID: ${categoryId}`);
       if (!token) return;
       try {
-        const updatedCategory = await updateCategoryServer(token, categoryId, nameEn, namePl);
+        const updatedCategory = await updateCategoryServer(categoryId, nameEn, namePl);
         setCategories((prev) =>
           prev.map((cat) => (cat.Id === categoryId ? updatedCategory : cat))
         );
@@ -142,7 +141,7 @@ const Categories = () => {
     async (categoryId: number) => {
       if (!token) return;
       try {
-        await deleteCategoryServer(token, categoryId);
+        await deleteCategoryServer(categoryId);
         setCategories((prev) => prev.filter((cat) => cat.Id !== categoryId));
         setDeleteConfirmation({ isOpen: false, category: null });
       } catch (err: any) {
@@ -324,4 +323,4 @@ const Categories = () => {
   );
 };
 
-export default Categories;
+export default withAuth(Categories, ['ROLE_ADMIN', 'ROLE_EMPLOYEE']);

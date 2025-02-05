@@ -1,5 +1,6 @@
 "use server";
 
+import { fetchWithAuth } from "@/auth/apiClient";
 import { PageResponse, Publisher } from "@/types/types";
 
 /**
@@ -10,22 +11,18 @@ import { PageResponse, Publisher } from "@/types/types";
  * @param pageSize - liczba wydawców na stronę
  */
 export async function fetchPublishersServer(
-  token: string,
   page: number,
-  pageSize: number
+  pageSize: number,
+  query?: string
 ): Promise<PageResponse<Publisher>> {
-  if (!token) {
-    throw new Error("Brak tokenu uwierzytelniającego (fetchPublishers).");
-  }
-
   const springPageIndex = page - 1;
-
-  const response = await fetch(
-    `http://localhost:8080/api/admin/publishers?page=${springPageIndex}&size=${pageSize}`,
+  // Jeśli query jest podane, dodaj je do parametrów URL (pamiętaj o encodeURIComponent)
+  const queryParam = query && query.trim() !== "" ? `&query=${encodeURIComponent(query)}` : "";
+  const response = await fetchWithAuth(
+    `http://localhost:8080/api/admin/publishers?page=${springPageIndex}&size=${pageSize}${queryParam}`,
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     }
@@ -37,35 +34,21 @@ export async function fetchPublishersServer(
 
   return response.json();
 }
-
-/**
- * Usuwa wydawcę o podanym ID
- */
-export async function deletePublisherServer(
-  token: string,
-  publisherId: number
-) {
-  if (!token) {
-    throw new Error("Brak tokenu uwierzytelniającego (deletePublisher).");
-  }
-
-  const response = await fetch(
+export async function deletePublisherServer(publisherId: number) {
+  const response = await fetchWithAuth(
     `http://localhost:8080/api/admin/publishers/${publisherId}`,
     {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     }
   );
 
   if (!response.ok) {
-    throw new Error(
-      "Nie można usunąć wydawcy. Może być powiązany z istniejącymi książkami."
-    );
+    throw new Error("Nie można usunąć wydawcy...");
   }
 
-  // Możesz zwrócić pusty obiekt, lub JSON potwierdzenia:
+  // Zwracamy response.json() – jeśli serwer coś zwraca
   return response.json();
 }

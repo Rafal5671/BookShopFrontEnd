@@ -104,5 +104,7 @@
   "categories": "Categories",
   "searchResultsFor": "Search results for",
   "allBooks": "All Books",
-  "no_reviews": "No Reviews"
+  "no_reviews": "No Reviews",
+  "numberOfPages":"Number of Pages",
+  "coverType": "Cover Type"
 }

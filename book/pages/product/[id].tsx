@@ -11,13 +11,10 @@ const ProductPage: React.FC<ProductPageProps> = ({ product }) => {
   return <ProductClient product={product} />;
 };
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  console.log("Context params:", context.params);
-
   try {
     const { id } = context.params!;
     const lang = context.locale || "pl"; 
     const product = await fetchProductById(id as string, lang);
-
     if (!product) {
       return { notFound: true };
     }

@@ -1,3 +1,5 @@
+"use client"; // Ten plik działa w przeglądarce
+
 import React, { useState, useEffect, useCallback, useTransition } from "react";
 import {
   Pagination,
@@ -13,24 +15,19 @@ import PublishersNavbar from "./PublisherNavbar";
 import AddPublisher from "./AddPublisher";
 import { useAuth } from "@/hooks/useAuth";
 import { deletePublisherServer, fetchPublishersServer } from "../server/admin/publishers/actions";
-
-export interface Publisher {
-  publisherId: number;
-  name: string;
-}
-
-export interface PageResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number; // numer aktualnej strony (0-based)
-  size: number;
-}
+import { Publisher } from "@/types/types";
+import { withAuth } from "../server/auth/withAuth";
 
 const Publishers: React.FC = () => {
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [currentPage, setCurrentPage] = useState(1); // 1-based
   const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 12;
+
+  // Stan wyszukiwania wpisany przez użytkownika
+  const [searchTerm, setSearchTerm] = useState("");
+  // Stan wyszukiwania używany do zapytań – aktualizowany dopiero po naciśnięciu Enter
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
@@ -41,21 +38,19 @@ const Publishers: React.FC = () => {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
 
   const { token } = useAuth();
-  const pageSize = 12;
 
-  // Dla operacji asynchronicznych (server actions):
+  // Dla operacji asynchronicznych (server actions)
   const [isPending, startTransition] = useTransition();
 
-  // -----------------------------------------
-  // 1. Pobieranie wydawców (server action)
-  // -----------------------------------------
+  // Funkcja pobierająca wydawców – wykorzystuje appliedSearchTerm
   const fetchPublishers = useCallback(
     async (page: number) => {
       if (!token) return;
 
       startTransition(async () => {
         try {
-          const data = await fetchPublishersServer(token, page, pageSize);
+          // Zakładamy, że fetchPublishersServer został rozszerzony o opcjonalny parametr query
+          const data = await fetchPublishersServer(page, pageSize, appliedSearchTerm);
           setPublishers(data.content);
           setTotalPages(data.totalPages);
         } catch (err: any) {
@@ -63,17 +58,21 @@ const Publishers: React.FC = () => {
         }
       });
     },
-    [token]
+    [token, appliedSearchTerm]
   );
 
-  // Wywołanie fetchPublishers przy zmianie currentPage
+  // Efekt pobierający wydawców przy zmianie currentPage lub appliedSearchTerm
   useEffect(() => {
     fetchPublishers(currentPage);
   }, [currentPage, fetchPublishers]);
 
-  // -----------------------------------------
-  // 2. Usuwanie wydawcy (server action)
-  // -----------------------------------------
+  // Funkcja wywoływana po naciśnięciu Enter – resetuje currentPage oraz ustawia appliedSearchTerm
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setAppliedSearchTerm(searchTerm);
+  };
+
+  // Funkcja do usuwania wydawcy
   const confirmDeletePublisher = (publisher: Publisher) => {
     setDeleteConfirmation({ isOpen: true, publisher });
   };
@@ -84,12 +83,11 @@ const Publishers: React.FC = () => {
 
       startTransition(async () => {
         try {
-          await deletePublisherServer(token, publisherId);
-          // Usuń z listy w stanie
+          await deletePublisherServer(publisherId);
+          // Aktualizujemy lokalny stan – usuwamy wydawcę z listy
           setPublishers((prev) =>
             prev.filter((p) => p.publisherId !== publisherId)
           );
-          // Zamknij modal
           setDeleteConfirmation({ isOpen: false, publisher: null });
         } catch (err) {
           console.error(err);
@@ -100,16 +98,13 @@ const Publishers: React.FC = () => {
     [token]
   );
 
-  // -----------------------------------------
-  // Render
-  // -----------------------------------------
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <PublishersNavbar
-        searchTerm=""
-        setSearchTerm={() => { }}
-        onOpen={() => setIsAddModalOpen(true)} // Otwieranie modala do dodawania wydawcy
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        onOpen={() => setIsAddModalOpen(true)}
+        onSearch={handleSearch}
       />
 
       <main className="p-6">
@@ -123,9 +118,7 @@ const Publishers: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-800">
                 {publisher.name}
               </h2>
-              <p className="text-sm text-gray-600">
-                ID: {publisher.publisherId}
-              </p>
+              <p className="text-sm text-gray-600">ID: {publisher.publisherId}</p>
               <Button
                 className="mt-4 bg-red-500 font-semibold"
                 onPress={() => confirmDeletePublisher(publisher)}
@@ -222,8 +215,9 @@ const Publishers: React.FC = () => {
           <ModalBody>
             <AddPublisher
               onPublisherAdded={() => {
-                fetchPublishers(currentPage); // Odśwież listę wydawców po dodaniu
-                setIsAddModalOpen(false); // Zamknij modal
+                // Odświeżamy listę wydawców po dodaniu i zamykamy modal
+                fetchPublishers(currentPage);
+                setIsAddModalOpen(false);
               }}
             />
           </ModalBody>
@@ -233,4 +227,4 @@ const Publishers: React.FC = () => {
   );
 };
 
-export default Publishers;
+export default withAuth(Publishers, ['ROLE_ADMIN', 'ROLE_EMPLOYEE']);

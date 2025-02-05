@@ -142,7 +142,7 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     startTransition(async () => {
       setLoadingPublishers(true);
       try {
-        const data = await fetchPublishersServer(token);
+        const data = await fetchPublishersServer();
         setAllPublishers(data.content);
       } catch (err) {
         console.error("Error fetching publishers:", err);
@@ -165,7 +165,7 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     startTransition(async () => {
       setLoadingAuthors(true);
       try {
-        const data = await fetchAuthorsServer(token);
+        const data = await fetchAuthorsServer();
         setAllAuthors(data.content);
       } catch (err) {
         console.error("Error fetching authors:", err);
@@ -284,14 +284,13 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
         if (initialData) {
           // Aktualizacja istniejącego produktu (PUT)
           updatedData = await updateProductServer(
-            token,
             initialData.bookId,
             requestBody
           );
           alert("Produkt został zaktualizowany!");
         } else {
           // Tworzenie nowego produktu (POST)
-          updatedData = await createProductServer(token, requestBody);
+          updatedData = await createProductServer(requestBody);
           alert("Produkt został dodany!");
           // Resetuj formularz
           setFormData({

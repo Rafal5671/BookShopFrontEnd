@@ -14,15 +14,13 @@ export default function AddAuthor({ onAuthorAdded }: AddAuthorProps)  {
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const { token } = useAuth();
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage("");
 
     startTransition(async () => {
       try {
-        const result = await addAuthor(token, firstName, lastName);
+        const result = await addAuthor(firstName, lastName);
         setMessage(`Dodano autora: ${result.firstName} ${result.lastName}`);
         setFirstName("");
         setLastName("");

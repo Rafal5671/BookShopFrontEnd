@@ -8,22 +8,8 @@ import {
   Button,
   ModalHeader,
 } from "@nextui-org/react";
-import { useAuth } from "@/hooks/useAuth";
-
-export interface User {
-  userId: number;
-  username: string;
-  email: string;
-  role: string;
-}
-
-export interface PageResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number; // numer aktualnej strony (0-based)
-  size: number;
-}
+import { fetchUsers as fetchUsersAPI,deleteUser as deleteUserAPI,User } from "../server/admin/users/actions";
+import { withAuth } from "../server/auth/withAuth";
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -32,63 +18,36 @@ const Users: React.FC = () => {
   const [deleteConfirmation, setDeleteConfirmation] = useState({
     isOpen: false,
     user: null as User | null,
-  }); // Modal potwierdzenia usunięcia
-  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false); // Modal błędu
-const { token, loading, logout } = useAuth();
+  });
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const pageSize = 12;
 
   useEffect(() => {
     fetchUsers(currentPage);
   }, [currentPage]);
 
-  const fetchUsers = (page: number) => {
-    const springPageIndex = page - 1;
-    if (!token) return;
-
-    fetch(
-      `http://localhost:8080/api/admin/users?page=${springPageIndex}&size=${pageSize}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then((data: PageResponse<User>) => {
-        setUsers(data.content);
-        setTotalPages(data.totalPages);
-      });
+  const fetchUsers = async (page: number) => {
+    try {
+      const data = await fetchUsersAPI(page, pageSize);
+      setUsers(data.content);
+      setTotalPages(data.totalPages);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const confirmDeleteUser = (user: User) => {
     setDeleteConfirmation({ isOpen: true, user });
   };
 
-  const deleteUser = (userId: number) => {
-    if (!token) return;
-
-    fetch(`http://localhost:8080/api/admin/users/${userId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Nie można usunąć użytkownika.");
-        }
-        return response.json();
-      })
-      .then(() => {
-        setUsers(users.filter((user) => user.userId !== userId)); // Usuń z listy
-        setDeleteConfirmation({ isOpen: false, user: null }); // Zamknij modal
-      })
-      .catch(() => {
-        setIsErrorModalOpen(true); // Otwórz modal błędu
-      });
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      await deleteUserAPI(userId);
+      setUsers(users.filter((user) => user.userId !== userId));
+      setDeleteConfirmation({ isOpen: false, user: null });
+    } catch (error) {
+      setIsErrorModalOpen(true);
+    }
   };
 
   return (
@@ -155,7 +114,7 @@ const { token, loading, logout } = useAuth();
               color="danger"
               onPress={() =>
                 deleteConfirmation.user &&
-                deleteUser(deleteConfirmation.user.userId)
+                handleDeleteUser(deleteConfirmation.user.userId)
               }
             >
               Tak
@@ -181,7 +140,10 @@ const { token, loading, logout } = useAuth();
       >
         <ModalContent>
           <ModalBody>
-            <p>Nie można usunąć użytkownika, ponieważ jest powiązany z innymi danymi.</p>
+            <p>
+              Nie można usunąć użytkownika, ponieważ jest powiązany z
+              innymi danymi.
+            </p>
           </ModalBody>
           <ModalFooter>
             <Button color="danger" onPress={() => setIsErrorModalOpen(false)}>
@@ -194,4 +156,4 @@ const { token, loading, logout } = useAuth();
   );
 };
 
-export default Users;
+export default withAuth(Users, ['ROLE_ADMIN']);

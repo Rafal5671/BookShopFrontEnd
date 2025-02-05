@@ -110,11 +110,14 @@ export interface LoginData {
 }
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 export interface AuthResult {
   userEmail: string | null;
-  token: string | null;
+  userRole: string|null;
+  accessToken: string | null;
+  refreshToken: string | null;
 }
 
 export interface PageResponse<T> {
@@ -126,8 +129,9 @@ export interface PageResponse<T> {
 }
 
 export interface OrderAdmin {
+  items: boolean;
   orderId: string;
-  date: string;
+  orderDate: string;
   itemsCount: number;
   amount: string;
   status: string;
