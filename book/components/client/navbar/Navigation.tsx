@@ -61,8 +61,13 @@ const Navigation = () => {
       handleSearch(searchQuery);
     }
   };
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/logout");
+    } catch (error) {
+      console.error("Błąd podczas wylogowywania:", error);
+    }
   };
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const toggleMegaMenu = () => setIsMegaMenuOpen((prev) => !prev);
@@ -132,7 +137,7 @@ const Navigation = () => {
                   <DropdownItem key="profile" href="/profile">
                     {t("profile")}
                   </DropdownItem>
-                  <DropdownItem key="logout" onClick={handleLogout}>
+                  <DropdownItem key="logout" onPress={handleLogout}>
                     {t("signOut")}
                   </DropdownItem>
                 </>

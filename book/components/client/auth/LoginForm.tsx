@@ -43,7 +43,7 @@ const LoginForm = ({ showGuestOrderButton = false, onGuestOrder, handleLoginOn }
       
       if (accessToken && userEmail && userRole) {
         // Zapisz token i rolę w kontekście (AuthProvider zajmie się też zapisem w localStorage)
-        login(accessToken, userRole);
+        login(accessToken, userRole,userEmail);
           
         // Opcjonalnie zapisujemy refreshToken
         if (refreshToken) {

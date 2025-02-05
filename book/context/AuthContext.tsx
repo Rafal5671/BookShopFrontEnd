@@ -5,9 +5,10 @@ import React, { createContext, useState, useEffect } from "react";
 export type AuthContextType = {
   token: string | null;
   userRole: string | null;
+  email :string|null;
   loading: boolean;
   sessionExpired: boolean;
-  login: (newToken: string, newRole: string) => void;
+  login: (newToken: string, newRole: string,email:string) => void;
   logout: () => void;
   setSessionExpired: (expired: boolean) => void;
 };
@@ -23,6 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
@@ -39,21 +41,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const login = (newToken: string, newRole: string) => {
+  const login = (newToken: string, newRole: string,email:string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem("authToken", newToken);
       localStorage.setItem("userRole", newRole);
     }
     setSessionExpired(false);
+    setEmail(email);
     setToken(newToken);
     setUserRole(newRole);
   };
 
-  const logout = () => {
+  const logout = async () => {
     if (typeof window !== "undefined") {
+
+      if (email) {
+        try {
+          await fetch("http://localhost:8080/api/refresh/logout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            // Przesyłamy obiekt zawierający email
+            body: JSON.stringify({ email }),
+          });
+        } catch (error) {
+          console.error("Błąd podczas wylogowania na backendzie:", error);
+        }
+      }
+
+      // Usuwamy tokeny z localStorage
       localStorage.removeItem("authToken");
       localStorage.removeItem("userRole");
+      localStorage.removeItem("refreshToken");
     }
+
     setSessionExpired(false);
     setToken(null);
     setUserRole(null);
@@ -62,6 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     token,
     userRole,
+    email,
     loading,
     sessionExpired,
     login,

@@ -5,6 +5,9 @@ import { FaEnvelope, FaLock, FaPhone, FaIdCard } from "react-icons/fa";
 import { Input, Button, Spacer, Checkbox, Card } from "@nextui-org/react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "@/hooks/useAuth";
+import router from "next/router";
 
 const RegisterForm: React.FC = () => {
   const { t, locale, translations } = useTranslation();
@@ -91,30 +94,58 @@ const RegisterForm: React.FC = () => {
     resolver: zodResolver(schema) as Resolver<FormData>,
   });
 
+  interface JwtPayload {
+    // Dostosuj interfejs do struktury Twojego tokena.
+    sub: string;
+    role: string;
+    exp: number;
+    iat: number;
+  }
   useEffect(() => {
     reset();
   }, [locale, reset]);
-
+  const { login } = useAuth();
   const onSubmit = async (data: FormData) => {
+    // Przed wysłaniem usuwamy pola używane wyłącznie do walidacji formularza
+    const { confirmPassword, terms, dataProcessing, ...customerData } = data;
+
     try {
-      const response = await fetch('http://localhost:8080/api/customers/register', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/api/customers/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(customerData),
       });
-  
+
       if (!response.ok) {
-        throw new Error('Rejestracja nie powiodła się');
+        throw new Error("Rejestracja nie powiodła się");
       }
-  
+
+      // Oczekujemy obiektu: { accessToken: string, refreshToken: string }
       const result = await response.json();
-      reset(); // Resetuj formularz po pomyślnej rejestracji
-      // Możesz tutaj dodać logikę po pomyślnej rejestracji, np. przekierowanie użytkownika
+      reset(); // Reset formularza po udanej rejestracji
+
+      // Automatyczne logowanie użytkownika – zakładamy, że backend zwróci tokeny analogiczne do logowania
+      const { accessToken, refreshToken } = result;
+
+      if (accessToken) {
+        // Dekodujemy token, aby pobrać np. rolę użytkownik
+        const decodedToken: any = jwtDecode(accessToken);
+        const userRole = decodedToken.role || '';
+
+        login(accessToken, userRole);
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+        }
+
+        router.push("/");
+      } else {
+        throw new Error("Brak tokena dostępu");
+      }
     } catch (error) {
-      console.error('Błąd rejestracji:', error);
-      // Możesz wyświetlić komunikat o błędzie użytkownikowi
+      console.error("Błąd rejestracji:", error);
+      // Tutaj możesz wyświetlić komunikat błędu użytkownikowi
     }
   };
   
