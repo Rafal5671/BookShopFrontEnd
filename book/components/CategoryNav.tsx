@@ -9,8 +9,8 @@ import { Category,Genre } from '@/types/types';
 
 const categoryHeaders = [
     { id: 1, label: "GATUNKI KSIĄŻEK" },
-    { id: 2, label: "SPECJALNE GATUNKI" },
-    { id: 3, label: "LITERATURA I WIĘCEJ" },
+    { id: 2, label: "PRZEDMIOTY SZKOLNE" },
+    { id: 3, label: "ARTYKUŁY BIUROWE" },
     { id: 4, label: "POPULARNE GATUNKI" },
     { id: 5, label: "KLASYKA LITERATURY" },
 ];
@@ -179,31 +179,7 @@ const MegaMenu: FC = () => {
 
                 {/* Right Column: Example Links */}
                 <ul className="flex items-center space-x-6 text-sm font-medium">
-                    <li>
-                        <Link href="#" className="hover:opacity-80 transition-opacity duration-200">
-                            Prezent
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#" className="hover:opacity-80 transition-opacity duration-200">
-                            {t("promotion")}
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#" className="hover:opacity-80 transition-opacity duration-200">
-                            Top 100
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#" className="hover:opacity-80 transition-opacity duration-200">
-                            {t("new")}
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="#" className="hover:opacity-80 transition-opacity duration-200">
-                            Outlet
-                        </Link>
-                    </li>
+                    
                 </ul>
             </nav>
         </div>

@@ -98,5 +98,5 @@ export async function updateOrderStatusServer(
     throw new Error("Nie udało się zaktualizować statusu zamówienia.");
   }
 
-  return response.json();
+  return response.text();
 }

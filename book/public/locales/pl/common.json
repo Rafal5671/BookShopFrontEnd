@@ -106,5 +106,6 @@
     "allBooks": "Wszystkie Książki",
     "no_reviews": "Brak Recenzji",
     "numberOfPages":"Liczba Stron",
-    "coverType": "Okładka"
+    "coverType": "Okładka",
+    "Szukaj autora": "Wyszukaj autora"
 }
