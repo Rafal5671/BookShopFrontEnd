@@ -1,21 +1,47 @@
+"use client";
+
 import React, { useEffect } from "react";
 import { Button, Image, Input } from "@nextui-org/react";
 import { FaTrash, FaMinus, FaPlus } from "react-icons/fa";
 import { useCart } from "@/hooks/CartContext";
 import { useRouter } from "next/router";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Product } from "@/types/types";
 
 const Cart = () => {
   const { cart, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
   const router = useRouter();
   const { t } = useTranslation();
-  const handleGoToDelivery = () => {
-    router.push("/delivery"); 
+
+  // Funkcja pomocnicza do pobierania ceny jednostkowej – jeśli discountPrice jest ustawione, to ją zwraca,
+  // w przeciwnym razie zwraca standardową cenę
+  const getUnitPrice = (product: Product): number => {
+    return product.discountPrice != null ? product.discountPrice : product.price;
   };
 
+  // Obliczamy łączną cenę po promocji (używając ceny promocyjnej, jeśli jest dostępna)
   const totalPrice = cart
+    .reduce((total, product) => total + getUnitPrice(product) * product.quantity, 0)
+    .toFixed(2);
+
+  // Obliczamy łączną kwotę oszczędności – dla produktów z ustawioną ceną promocyjną
+  const totalSavings = cart
+    .reduce((acc, product) => {
+      if (product.discountPrice != null) {
+        return acc + (product.price - product.discountPrice) * product.quantity;
+      }
+      return acc;
+    }, 0)
+    .toFixed(2);
+
+  // Obliczamy cenę przed promocją (dla wszystkich produktów, niezależnie czy mają promocję)
+  const originalTotal = cart
     .reduce((total, product) => total + product.price * product.quantity, 0)
     .toFixed(2);
+
+  const handleGoToDelivery = () => {
+    router.push("/delivery");
+  };
 
   const increaseQuantity = (id: number) => {
     const product = cart.find((product) => product.bookId === id);
@@ -34,7 +60,7 @@ const Cart = () => {
 
   // Funkcja do obsługi zmiany ilości w inpucie
   const handleQuantityChange = (id: number, value: string) => {
-    // Pozwól na puste pole
+    // Pozwól na puste pole lub tylko cyfry
     if (value === "" || /^[0-9]*$/.test(value)) {
       const quantity = value === "" ? 1 : Math.min(parseInt(value, 10), 99);
       updateQuantity(id, quantity);
@@ -58,7 +84,7 @@ const Cart = () => {
       console.log(`Produkt: ${product.title}, Ilość: ${product.quantity}`);
       console.log(product);
     });
-  }, [cart]); // useEffect wywołuje się, gdy koszyk się zmienia
+  }, [cart]);
 
   return (
     <div className="my-10 flex justify-center w-full">
@@ -78,22 +104,35 @@ const Cart = () => {
                   <Image
                     src={product.imageUrl}
                     alt={product.title}
-                    className="w-24 h-24 object-containt"
+                    className="w-24 h-24 object-contain"
                   />
-
                 </div>
 
                 {/* Szczegóły produktu */}
                 <div className="flex-1 flex flex-col ml-4">
                   <span className="text-lg font-bold">{product.title}</span>
-                  <span className="text-lg text-gray-400">
-                    {t("pricePerUnit")}: {product.price.toFixed(2)} PLN
+                  <span className="text-lg">
+                    {t("pricePerUnit")}:{" "}
+                    {product.discountPrice != null ? (
+                      <>
+                        <span className="text-gray-400 line-through mr-2">
+                          {product.price.toFixed(2)} PLN
+                        </span>
+                        <span className="text-green-500 font-bold">
+                          {product.discountPrice.toFixed(2)} PLN
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-gray-400">
+                        {product.price.toFixed(2)} PLN
+                      </span>
+                    )}
                   </span>
 
-                  {/* Cena i kontrolki ilości */}
+                  {/* Cena całkowita dla danej pozycji i kontrolki ilości */}
                   <div className="flex items-center mt-2 justify-between">
                     <span className="text-lg">
-                      {t("totalPrice")}: {(product.price * product.quantity).toFixed(2)} PLN
+                      {t("totalPrice")}: {(getUnitPrice(product) * product.quantity).toFixed(2)} PLN
                     </span>
                     <div className="flex items-center">
                       {product.quantity > 1 ? (
@@ -140,18 +179,42 @@ const Cart = () => {
           )}
         </div>
 
+        {/* Podsumowanie koszyka */}
         <div className="flex flex-col ml-4 pl-4 mt-auto">
-          <div className="flex flex-col items-start mb-2">
-            <span className="text-lg font-semibold">{t("totalCost")}:</span>
-            <span className="text-2xl font-bold">{totalPrice} PLN</span>
-          </div>
+          {+totalSavings > 0 ? (
+            <>
+              <div className="flex flex-col items-start mb-2">
+                <span className="text-lg font-semibold">{t("originalPrice")}:</span>
+                <span className="text-xl font-bold line-through">
+                  {originalTotal} PLN
+                </span>
+              </div>
+              <div className="flex flex-col items-start mb-2">
+                <span className="text-lg font-semibold">{t("youSave")}:</span>
+                <span className="text-2xl font-bold text-green-500">
+                  {totalSavings} PLN
+                </span>
+              </div>
+              <div className="flex flex-col items-start mb-2">
+                <span className="text-lg font-semibold">{t("discountedPrice")}:</span>
+                <span className="text-2xl font-bold">
+                  {totalPrice} PLN
+                </span>
+              </div>
+            </>
+
+          ) : (
+            <div className="flex flex-col items-start mb-2">
+              <span className="text-lg font-semibold">{t("totalCost")}:</span>
+              <span className="text-2xl font-bold">{totalPrice} PLN</span>
+            </div>
+          )}
           <Button className="bg-green-500" onPress={handleGoToDelivery}>
             {t("chooseDeliveryMethod")}
           </Button>
           <Button onPress={clearCart} className="mt-2 bg-red-500">
             {t("clearCart")}
           </Button>
-
         </div>
       </div>
     </div>

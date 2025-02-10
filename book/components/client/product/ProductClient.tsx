@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
+import { BreadcrumbItem, Breadcrumbs, Button, Card, CardBody, CardHeader, Link } from "@nextui-org/react";
 import { AiOutlineStar, AiOutlineShoppingCart } from "react-icons/ai";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import ReviewForm from "@/components/client/product/ReviewForm";
@@ -144,6 +144,30 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
 
   return (
     <div className="mt-5 mb-5 px-4 md:px-12">
+      <Breadcrumbs variant="solid" className="mb-4" classNames={{ list: "bg-primary-200" }}>
+        <BreadcrumbItem color="primary"><Link href="/">{t("Home")}</Link></BreadcrumbItem>
+        <BreadcrumbItem color="primary"><Link href={`/search?categoryId=${product.category.id}`}> {product.category.name}</Link></BreadcrumbItem>
+        <BreadcrumbItem>
+          <span>
+            {product.genres && product.genres.length > 0 ? (
+              product.genres.map((genre, index) => {
+                return (
+                  <>
+                    <Link href={`/search?genreId=${genre.genreId}`}>
+                      {genre.name}
+                    </Link>
+                    {index < product.genres.length - 1 && ", "}
+                  </>
+                );
+              })
+            ) : (
+              "Gatunki"
+            )}
+          </span>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrent={true}>{product.title}</BreadcrumbItem>
+      </Breadcrumbs>
+
       <Card className="w-full mx-auto p-6 bg-primary-200 shadow-lg rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="flex justify-center items-center">

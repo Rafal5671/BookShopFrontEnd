@@ -9,7 +9,7 @@ import { useCart } from "@/hooks/CartContext";
 
 const SearchPage: React.FC = () => {
   const router = useRouter();
-  const { search: searchQuery, genreId: queryGenreId } = router.query;
+  const { search: searchQuery, genreId: queryGenreId, categoryId: queryCategoryId } = router.query;
 
   // Stany na dane filtrujące i książki
   const [books, setBooks] = useState<Product[]>([]);
@@ -35,7 +35,20 @@ const SearchPage: React.FC = () => {
       relese_year: 0
     });
   };
-  
+  useEffect(() => {
+    if (queryCategoryId) {
+      let categories: number[] = [];
+      if (Array.isArray(queryCategoryId)) {
+        categories = queryCategoryId.map((id) => Number(id));
+      } else if (typeof queryCategoryId === "string") {
+        categories = queryCategoryId.split(",").map((id) => Number(id));
+      }
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        selectedCategories: categories,
+      }));
+    }
+  }, [queryCategoryId]);
   // Pobieranie danych filtrujących (aggregated data)
   useEffect(() => {
     const fetchAggregatedData = async () => {
@@ -73,10 +86,8 @@ const SearchPage: React.FC = () => {
       let genres: number[] = [];
       
       if (Array.isArray(queryGenreId)) {
-        // Jeśli queryGenreId jest tablicą stringów, konwertujemy każdy element na liczbę
         genres = queryGenreId.map((id) => Number(id));
       } else if (typeof queryGenreId === "string") {
-        // Jeśli queryGenreId jest pojedynczym stringiem, dzielimy go na tablicę i konwertujemy elementy na liczby
         genres = queryGenreId.split(",").map((id) => Number(id));
       }
       

@@ -22,7 +22,7 @@ import { createOrderServer, fetchCustomerDataServer } from "@/components/client/
 import { loadStripe } from "@stripe/stripe-js";
 import { FormData } from "@/types/types";
 import LoginForm from "@/components/client/auth/LoginForm";
-import { useAuth } from "@/hooks/useAuth"; // Używamy hooka z AuthProvider
+import { useAuth } from "@/hooks/useAuth";
 
 type Product = {
   bookId: number;
@@ -36,12 +36,8 @@ const stripePromise = loadStripe(
 );
 
 const DeliveryPage: React.FC = () => {
-  // Pobieramy dane z kontekstu uwierzytelnienia
   const { token, loading } = useAuth();
 
-  // -----------------------------
-  // 1. Stan komponentu i router
-  // -----------------------------
   const [step, setStep] = useState<number>(1);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -62,9 +58,6 @@ const DeliveryPage: React.FC = () => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // -----------------------------
-  // 2. Pobieranie danych użytkownika (jeśli token istnieje)
-  // -----------------------------
   const fetchUserData = useCallback(
     (token: string) => {
       startTransition(async () => {
@@ -92,15 +85,11 @@ const DeliveryPage: React.FC = () => {
   );
 
   useEffect(() => {
-    // Jeśli mamy token z AuthProvider, pobieramy dane użytkownika
     if (token) {
       fetchUserData(token);
     }
   }, [token, fetchUserData]);
 
-  // -----------------------------
-  // 3. Odczyt koszyka z localStorage
-  // -----------------------------
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
@@ -117,31 +106,22 @@ const DeliveryPage: React.FC = () => {
     }
   }, []);
 
-  // Pomocnicza funkcja do sumy koszyka
-  const getTotalPrice = (): number => {
-    return cart.reduce(
+  const getTotalPrice = (): number =>
+    cart.reduce(
       (total, product) => total + product.price * product.quantity,
       0
     );
-  };
 
-  // -----------------------------
-  // 4. Obsługa zamówienia jako gość / logowanie
-  // -----------------------------
   const handleOrderAsGuest = () => {
     setOrderAsGuest(true);
   };
 
-  // Po zalogowaniu – pobieramy dane użytkownika (AuthProvider ustawia token)
   const handleLoginOn = () => {
     if (token) {
       fetchUserData(token);
     }
   };
 
-  // -----------------------------
-  // 5. Obsługa formularza – zmiana pól i przechodzenie między krokami
-  // -----------------------------
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -158,9 +138,6 @@ const DeliveryPage: React.FC = () => {
   const handlePreviousStep = () => setStep((prev) => prev - 1);
   const getProgressPercentage = (): number => (step / 3) * 100;
 
-  // -----------------------------
-  // 6. Tworzenie zamówienia (Server Action)
-  // -----------------------------
   const handleOrderSubmit = async () => {
     const orderData = {
       address: {
@@ -169,14 +146,14 @@ const DeliveryPage: React.FC = () => {
         city: formData.city,
         country: formData.country,
       },
+      // Przesyłamy tylko id produktów i ilości – serwer obliczy cenę
       items: cart.map((p) => ({
         bookId: p.bookId,
         quantity: p.quantity,
       })),
-      amount: getTotalPrice(),
+      paymentMethod: formData.paymentMethod, // Przekazujemy metodę płatności
     };
-
-    // Token nie jest tu używany do weryfikacji, ale możesz go przekazać w zapytaniu, jeśli backend tego wymaga
+  
     startTransition(async () => {
       try {
         const result = await createOrderServer(orderData);
@@ -187,13 +164,13 @@ const DeliveryPage: React.FC = () => {
             "Brak 'url' w odpowiedzi z backendu (Stripe Checkout)."
           );
         }
-
+  
         if (formData.paymentMethod === "online" && url) {
           window.location.href = url;
         } else {
           alert("Zamówienie zostało złożone – płatność przy odbiorze.");
           localStorage.removeItem("cart");
-          router.push("/confirmation");
+          router.push("/confirm");
         }
       } catch (error: any) {
         console.error("Błąd podczas składania zamówienia:", error);
@@ -205,16 +182,12 @@ const DeliveryPage: React.FC = () => {
       }
     });
   };
+  
 
-  // -----------------------------
-  // 7. Render – obsługa ładowania oraz logowania
-  // -----------------------------
   if (loading) {
     return <div>Ładowanie...</div>;
   }
 
-  // Jeśli użytkownik nie jest zalogowany (token nie istnieje) i nie zamawia jako gość,
-  // wyświetlamy formularz logowania.
   if (!token && !orderAsGuest) {
     return (
       <div>
@@ -227,14 +200,9 @@ const DeliveryPage: React.FC = () => {
     );
   }
 
-  // -----------------------------
-  // 8. Render – wieloetapowy formularz zamówienia
-  // -----------------------------
   return (
     <div className="max-w-4xl mt-10 mb-10 mx-auto p-8 bg-primary-200 rounded-lg shadow-lg">
       <h1 className="text-2xl font-bold mb-6 text-center">Zamówienie</h1>
-
-      {/* Pasek postępu */}
       <div className="mb-6">
         <Progress
           value={getProgressPercentage()}

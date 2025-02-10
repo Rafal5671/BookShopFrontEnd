@@ -107,5 +107,9 @@
   "no_reviews": "No Reviews",
   "numberOfPages":"Number of Pages",
   "coverType": "Cover Type",
-  "Szukaj autora": "Search Author"
+  "Szukaj autora": "Search Author",
+  "youSave": "You Save",
+  "originalPrice": "orginal Price",
+  "discountedPrice": "Price with Discount",
+  "Home": "Home"
 }

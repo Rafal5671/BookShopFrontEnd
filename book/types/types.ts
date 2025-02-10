@@ -21,6 +21,8 @@ export type Product = {
   title: string;
   imageUrl?: string;
   pagesCount: number;
+  category: Category;
+  genres : Genre[];
   releseYear: number;
   price: number;
   description?: string;
@@ -32,6 +34,7 @@ export type Product = {
   publisher: Publisher | Publisher[];
   authors: Author[];
   originalTitle: string;
+  averageRating: number;
   language: string;
   quantity:number;
 };

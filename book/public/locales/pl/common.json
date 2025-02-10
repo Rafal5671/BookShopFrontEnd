@@ -107,5 +107,9 @@
     "no_reviews": "Brak Recenzji",
     "numberOfPages":"Liczba Stron",
     "coverType": "Okładka",
-    "Szukaj autora": "Wyszukaj autora"
+    "Szukaj autora": "Wyszukaj autora",
+    "youSave": "Oszczędzasz",
+    "originalPrice": "Cena orginalna",
+    "discountedPrice": "Cena z Promocją",
+    "Home": "Strona Główna"
 }
