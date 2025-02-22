@@ -6,6 +6,7 @@ import { Button, Link, Pagination } from "@nextui-org/react";
 import { FaStar } from "react-icons/fa";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCart } from "@/hooks/CartContext";
+import { AiOutlineShoppingCart } from "react-icons/ai";
 
 const SearchPage: React.FC = () => {
   const router = useRouter();
@@ -24,17 +25,24 @@ const SearchPage: React.FC = () => {
     freeShipping: false,
     priceRange: [0, 5000],
   });
+  // Nowy stan do sortowania
+  const [sortOption, setSortOption] = useState<string>("default");
+
+  // Pobieranie wyszukiwanej frazy jako string
+  const searchPhrase = Array.isArray(searchQuery) ? searchQuery.join(" ") : searchQuery || "";
+
   const { addToCart } = useCart();
   const handleAddToCart = (book: Product) => {
-    // Implementacja logiki dodawania do koszyka
     addToCart({
-      ...book, quantity: 1,
+      ...book,
+      quantity: 1,
       titlePl: "",
       titleEn: "",
       pages_count: 0,
-      relese_year: 0
+      relese_year: 0,
     });
   };
+
   useEffect(() => {
     if (queryCategoryId) {
       let categories: number[] = [];
@@ -49,6 +57,7 @@ const SearchPage: React.FC = () => {
       }));
     }
   }, [queryCategoryId]);
+
   // Pobieranie danych filtrujących (aggregated data)
   useEffect(() => {
     const fetchAggregatedData = async () => {
@@ -77,30 +86,31 @@ const SearchPage: React.FC = () => {
     };
 
     fetchAggregatedData();
-  }, [
-    searchQuery,
-    router.locale,
-  ]);
+  }, [searchQuery, router.locale]);
+
   useEffect(() => {
     if (queryGenreId) {
       let genres: number[] = [];
-      
       if (Array.isArray(queryGenreId)) {
         genres = queryGenreId.map((id) => Number(id));
       } else if (typeof queryGenreId === "string") {
         genres = queryGenreId.split(",").map((id) => Number(id));
       }
-      
       setFilters((prevFilters) => ({
         ...prevFilters,
         selectedGenres: genres,
       }));
     }
   }, [queryGenreId]);
-  
-  
+
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+
+  // Zmiana sortowania wymusza reset bieżącej strony i pobranie nowych danych
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortOption]);
+
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -113,12 +123,17 @@ const SearchPage: React.FC = () => {
         if (filters.priceRange[0] > 0) params.append("priceMin", filters.priceRange[0].toString());
         if (filters.priceRange[1] < maxPrice) params.append("priceMax", filters.priceRange[1].toString());
 
+        // Dodanie sortowania, jeśli wybrana opcja nie jest domyślna
+        if (sortOption && sortOption !== "default") {
+          params.append("sortBy", sortOption);
+        }
+
         // Użycie numeru strony oraz limitu
         params.append("page", currentPage.toString());
         params.append("limit", "10");
         const lang = router.locale || "pl";
         params.append("lang", lang);
-
+        console.log(params.toString());
         const response = await fetch(`http://localhost:8080/api/books?${params.toString()}`);
         if (!response.ok) throw new Error("Błąd pobierania książek");
         const data: PaginatedResponse = await response.json();
@@ -130,12 +145,13 @@ const SearchPage: React.FC = () => {
     };
 
     fetchBooks();
-  }, [searchQuery, filters, maxPrice, router.locale, currentPage]);
+  }, [searchQuery, filters, maxPrice, router.locale, currentPage, sortOption]);
+
   const getAuthors = (authors: Author[]): string => {
     return authors.map((author) => `${author.firstName} ${author.lastName}`).join(", ");
   };
   const { t } = useTranslation();
-  // Funkcja wyświetlająca nazwy wydawców – przykładowo, gdy publisher może być tablicą lub pojedynczym obiektem
+
   const displayPublisherNames = (book: Product): string => {
     if (Array.isArray(book.publisher)) {
       return book.publisher.length > 0
@@ -148,25 +164,41 @@ const SearchPage: React.FC = () => {
     return t("noPublisher");
   };
 
-  // Funkcja obliczająca średnią ocenę na podstawie recenzji
   const getAverageRating = (reviews: Review[]): number => {
     if (reviews.length === 0) return 0;
     const total = reviews.reduce((sum, review) => sum + review.rating, 0);
     return parseFloat((total / reviews.length).toFixed(1));
   };
 
-  // Inna logika pobierania książek oraz obsługi filtrów…
-
   const handleApplyFilters = useCallback((appliedFilters: Filters) => {
     setFilters(appliedFilters);
-    // Możesz zaktualizować URL lub wykonać dodatkowe akcje
   }, []);
+
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
+
   return (
     <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-xl font-semibold">
+          {searchPhrase ? `Wyniki wyszukiwania frazy: "${searchPhrase}"` : "Wyniki wyszukiwania"}
+        </div>
+        <div>
+          <select
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+            className="p-2 border rounded"
+          >
+            <option value="default">Sortuj</option>
+            <option value="priceAsc">Cena: rosnąco</option>
+            <option value="priceDesc">Cena: malejąco</option>
+            <option value="titleAsc">Tytuł: A-Z</option>
+            <option value="titleDesc">Tytuł: Z-A</option>
+          </select>
+        </div>
+      </div>
       <div className="flex items-start">
         <SidebarFilters
           genres={availableGenres}
@@ -198,9 +230,9 @@ const SearchPage: React.FC = () => {
                 {/* Szczegóły książki */}
                 <div className="sm:w-1/3 sm:ml-4 mb-4 sm:mb-0 overflow-y-auto">
                   <Link href={`/product/${book.bookId}`}>
-                    <h4 className="text-xl font-semibold mb-2 cursor-pointer hover:underline">
+                    <p className="text-xl font-semibold mb-2  cursor-pointer hover:underline">
                       {book.title}
-                    </h4>
+                    </p>
                   </Link>
                   <p className="text-sm mb-2">{getAuthors(book.authors)}</p>
                   <p className="text-sm mb-2">
@@ -210,11 +242,12 @@ const SearchPage: React.FC = () => {
                     <strong>{t("numberOfPages")}:</strong> {book.pagesCount}
                   </p>
                   <p className="text-sm mb-2">
-                    <strong>{t("language")}:</strong> {book.language}
+                    <strong>{t("language")}:</strong> {book.language === "POLISH" ? "Polski" : book.language}
                   </p>
                   <p className="text-sm mb-2">
-                    <strong>{t("coverType")}:</strong> {book.coverType}
+                    <strong>{t("coverType")}:</strong> {book.coverType === "HARD" ? "Twarda" : book.coverType === "SOFT" ? "Miękka" : book.coverType}
                   </p>
+
                   <p className="text-sm mb-2">
                     <strong>{t("releaseDate")}:</strong>{" "}
                     {new Date(book.releaseDate).toLocaleDateString("pl-PL", {
@@ -244,7 +277,7 @@ const SearchPage: React.FC = () => {
                   </div>
 
                   {/* Cena książki */}
-                  <p className="text-lg font-bold">
+                  <p className="text-lg font-bold text-center">
                     {book.discountPrice ? (
                       <>
                         <span className="line-through text-gray-500 mr-2">
@@ -257,13 +290,13 @@ const SearchPage: React.FC = () => {
                     )}
                   </p>
 
+
                   {/* Przycisk dodawania do koszyka */}
                   <Button
-                    color="default"
-                    size="sm"
-                    className="mt-2"
+                    className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center gap-2 transition-colors duration-300"
                     onPress={() => handleAddToCart(book)}
                   >
+                    <AiOutlineShoppingCart size={20} />
                     {t("addToCart")}
                   </Button>
                 </div>

@@ -86,6 +86,7 @@ const Users: React.FC = () => {
             <Pagination
               disableCursorAnimation
               showControls
+              color="warning"
               initialPage={currentPage}
               total={totalPages}
               onChange={(page) => setCurrentPage(page)}

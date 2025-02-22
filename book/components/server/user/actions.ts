@@ -31,7 +31,7 @@ export async function deleteReviewServer(reviewId: number): Promise<void> {
   try {
     // Używamy fetchWithAuth (tak jak w fetchUserProfileServer)
     const response = await fetchWithAuth(
-      `http://localhost:8080/api/customers/reviews/${reviewId}`,
+      `http://localhost:8080/api/reviews/${reviewId}`,
       {
         method: "DELETE",
         headers: {

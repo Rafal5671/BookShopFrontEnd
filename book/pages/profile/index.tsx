@@ -5,6 +5,7 @@ import { FaStar, FaEdit, FaTrash } from "react-icons/fa";
 import { deleteReviewServer, fetchUserProfileServer } from "@/components/server/user/actions";
 import { useTranslation } from "@/hooks/useTranslation";
 import { User } from "@/types/types";
+import { submitReview } from "@/components/client/review/actions";
 
 const UserProfile: React.FC = () => {
   const [userData, setUserData] = useState<User | null>(null);
@@ -19,7 +20,18 @@ const UserProfile: React.FC = () => {
     setSelectedReviewId(reviewId);
     setIsModalOpen(true);
   };
-
+  const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
+  const [editingReview, setEditingReview] = useState<{
+    reviewId: number;
+    content: string;
+    rating: number;
+    bookTitle: string;
+    bookId:number;
+  } | null>(null);
+  const [editingContent, setEditingContent] = useState<string>("");
+  const [editingRating, setEditingRating] = useState<number>(3);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState<boolean>(false);
   const closeDeleteModal = () => {
     setSelectedReviewId(null);
     setIsModalOpen(false);
@@ -57,12 +69,6 @@ const UserProfile: React.FC = () => {
     } finally {
       setDeleting(false);
     }
-  };
-
-  // Funkcja do obsługi edycji recenzji (implementacja zależy od wymagań)
-  const handleEdit = (reviewId: number) => {
-    // Implementacja edycji recenzji
-    console.log(`Edytuj recenzję o ID: ${reviewId}`);
   };
 
   useEffect(() => {
@@ -119,6 +125,77 @@ const UserProfile: React.FC = () => {
       </div>
     );
   }
+  const handleEdit = (reviewId: number) => {
+    if (!userData) return;
+
+    // Znajdujemy recenzję do edycji z userData
+    const r = userData.reviews.find((rev) => rev.reviewId === reviewId);
+    if (!r) return;
+
+    setEditingReview({
+      reviewId: r.reviewId,
+      content: r.content,
+      rating: r.rating,
+      bookTitle: r.bookTitle,
+      bookId: r.bookId
+    });
+    setEditingContent(r.content);
+    setEditingRating(r.rating);
+    setEditModalOpen(true);
+  };
+
+  // 2) Zamyka modal edycji
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setEditingReview(null);
+    setEditingContent("");
+    setEditingRating(3);
+    setEditError(null);
+  };
+
+  // 3) Zapisuje edycję (wysyła PUT do serwera)
+  const confirmEdit = async () => {
+    if (!editingReview) return;
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setEditError("Brak tokenu uwierzytelniającego.");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      // Wywołujemy funkcję submitReview
+      await submitReview(
+        token,
+        editingReview.bookId,
+        editingReview.reviewId,
+        editingRating,
+        editingContent
+      );
+
+      // Lokalne odświeżenie stanu (podmiana recenzji w userData)
+      if (userData) {
+        setUserData({
+          ...userData,
+          reviews: userData.reviews.map((rev) =>
+            rev.reviewId === editingReview.reviewId
+              ? { ...rev, content: editingContent, rating: editingRating }
+              : rev
+          ),
+        });
+      }
+      closeEditModal();
+    } catch (err: unknown) {
+      console.error("Błąd edycji recenzji:", err);
+      if (err instanceof Error) {
+        setEditError(err.message);
+      } else {
+        setEditError("Wystąpił nieznany błąd.");
+      }
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   // Funkcja pomocnicza do nadawania klas CSS w zależności od statusu zamówienia
   const getStatusClass = (status: string) => {
@@ -175,15 +252,16 @@ const UserProfile: React.FC = () => {
             {t("orders")}
           </h2>
           {userData.orders.length > 0 ? (
-            <div className="flex flex-col space-y-6">
+            <div className={`flex flex-col space-y-6 ${userData.orders.length > 3 ? "max-h-96 overflow-y-auto" : ""
+              }`}>
               {userData.orders.map((order) => (
-                <Card key={order.orderId} className="p-6 shadow-lg bg-primary-200">
+                <Card key={order.orderId} className="p-6 shadow-lg bg-primary-200 flex-shrink-0">
                   <div className="flex justify-between mb-4">
                     <h3 className="text-lg font-bold">
                       {t("orderNumber")} #{order.orderId}
                     </h3>
                     <span className={getStatusClass(order.status)}>
-                      {order.status}
+                      Oczekujące
                     </span>
                   </div>
                   <p className="mb-2">
@@ -213,7 +291,7 @@ const UserProfile: React.FC = () => {
         {/* Recenzje */}
         <div>
           <h2 className="text-xl font-semibold mb-4 border-b pb-2">
-            {t("reviews")}
+            Recenzje Użytkownika
           </h2>
           {userData.reviews.length > 0 ? (
             <div className="flex flex-col space-y-6">
@@ -278,6 +356,56 @@ const UserProfile: React.FC = () => {
                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                   >
                     {t("delete")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {editModalOpen && editingReview && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="p-6 rounded-lg shadow-lg bg-primary-100 max-w-sm w-full">
+                <h2 className="text-lg font-bold mb-4">Edytuj recenzję</h2>
+                <p className="font-semibold mb-2">{editingReview.bookTitle}</p>
+
+                {/* Pole treści */}
+                <label className="block mb-2">
+                  Treść recenzji:
+                  <textarea
+                    className="w-full border rounded px-2 py-1 mt-1"
+                    rows={4}
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                  />
+                </label>
+
+                {/* Pole oceny (rating) */}
+                <label className="block mb-2">
+                  Ocena (1-5):
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    className="w-full border rounded px-2 py-1 mt-1"
+                    value={editingRating}
+                    onChange={(e) => setEditingRating(Number(e.target.value))}
+                  />
+                </label>
+
+                {editError && <p className="text-red-500 mb-2">{editError}</p>}
+
+                <div className="flex justify-end space-x-4 mt-4">
+                  <button
+                    onClick={closeEditModal}
+                    className="px-4 py-2 bg-red-500 rounded text-white"
+                  >
+                    Anuluj
+                  </button>
+                  <button
+                    onClick={confirmEdit}
+                    disabled={savingEdit}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Zapisz
                   </button>
                 </div>
               </div>

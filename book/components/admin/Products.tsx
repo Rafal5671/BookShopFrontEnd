@@ -241,7 +241,7 @@ const Products = () => {
                 </div>
 
                 <div className="text-center">
-                  <strong>Stan:</strong> {product.stock || "Brak danych"}
+                  <strong>Stan:</strong> {product.stockQuantity || "Brak danych"}
                 </div>
 
                 <div className="flex flex-col gap-4">
@@ -290,6 +290,7 @@ const Products = () => {
             <Pagination
               disableCursorAnimation
               showControls
+              color="warning"
               initialPage={currentPage}
               total={totalPages}
               onChange={(page) => setCurrentPage(page)}

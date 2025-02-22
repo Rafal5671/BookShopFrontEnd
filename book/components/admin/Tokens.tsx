@@ -5,8 +5,20 @@ import { Pagination, Button, Input } from "@nextui-org/react";
 
 import { PageResponse } from "@/types/types";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchRefreshTokensByEmailServer, fetchRefreshTokensServer, RefreshTokenItem, revokeRefreshTokenServer } from "../server/admin/tokens/actions";
+import {
+  fetchRefreshTokensServer,
+  RefreshTokenItem,
+  revokeRefreshTokenServer,
+} from "../server/admin/tokens/actions";
 import { withAuth } from "../server/auth/withAuth";
+
+// Funkcja pomocnicza do skracania tokenu
+const shortenToken = (token: string, startLength: number = 10, endLength: number = 10) => {
+  if (token.length > startLength + endLength) {
+    return token.slice(0, startLength) + "..." + token.slice(-endLength);
+  }
+  return token;
+};
 
 function RefreshTokens() {
   const [tokens, setTokens] = useState<RefreshTokenItem[]>([]);
@@ -16,8 +28,8 @@ function RefreshTokens() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchEmail, setSearchEmail] = useState(""); // Wartość wpisywana przez użytkownika
-  const [submittedEmail, setSubmittedEmail] = useState(""); // Email, który faktycznie wywoła zapytanie
+  const [searchEmail, setSearchEmail] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
   const { token } = useAuth();
 
@@ -27,12 +39,10 @@ function RefreshTokens() {
       setError(null);
 
       try {
-        let data: PageResponse<RefreshTokenItem>;
-        if (email) {
-          data = await fetchRefreshTokensByEmailServer(email, page, pageSize);
-        } else {
-          data = await fetchRefreshTokensServer(page, pageSize);
-        }
+        // Wystarczy jedna funkcja, która obsłuży i pusty email i niepusty
+        const data: PageResponse<RefreshTokenItem> =
+          await fetchRefreshTokensServer(page, pageSize, email);
+
         setTokens(data.content);
         setTotalPages(data.totalPages);
       } catch (err: any) {
@@ -44,7 +54,6 @@ function RefreshTokens() {
     [pageSize]
   );
 
-  // Załaduj tokeny przy starcie lub zmianie strony
   useEffect(() => {
     loadTokens(currentPage, submittedEmail);
   }, [currentPage, submittedEmail, loadTokens]);
@@ -70,50 +79,72 @@ function RefreshTokens() {
   };
 
   if (isLoading) {
-    return <p>Ładowanie tokenów...</p>;
+    return <p className="text-center mt-10">Ładowanie tokenów...</p>;
   }
 
   if (error) {
-    return <p>Błąd: {error}</p>;
+    return <p className="text-center mt-10 text-red-500">Błąd: {error}</p>;
   }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl mb-4">Refresh Tokeny</h1>
+    <div className="p-6 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-center">Refresh Tokeny</h1>
 
-      <div className="flex gap-2 mb-4">
-        <Input
-          placeholder="Szukaj po email..."
-          value={searchEmail}
-          onChange={handleEmailChange}
-        />
-        <Button onPress={handleSearch}>Szukaj</Button>
+      <div className="flex justify-center mb-6">
+        <div className="flex gap-2 w-full max-w-md">
+          <Input
+            fullWidth
+            placeholder="Szukaj po email..."
+            value={searchEmail}
+            onChange={handleEmailChange}
+          />
+          <Button onPress={handleSearch}>Szukaj</Button>
+        </div>
       </div>
 
-      {tokens.length === 0 && <p>Brak tokenów do wyświetlenia.</p>}
+      {tokens.length === 0 && (
+        <p className="text-center">Brak tokenów do wyświetlenia.</p>
+      )}
 
-      {tokens.map((tokenObj) => (
-        <div key={tokenObj.id} className="border rounded-md p-4 mb-2 flex justify-between items-center">
-          <div>
-            <p><strong>ID:</strong> {tokenObj.id}</p>
-            <p><strong>Email:</strong> {tokenObj.email}</p>
-            <p><strong>Token:</strong> {tokenObj.token}</p>
-            <p><strong>Wygasa:</strong> {new Date(tokenObj.expiryDate).toLocaleString()}</p>
-            <p><strong>Revoked:</strong> {tokenObj.revoked ? "Tak" : "Nie"}</p>
+      <div className="grid gap-4">
+        {tokens.map((tokenObj) => (
+          <div
+            key={tokenObj.id}
+            className="bg-white rounded-lg shadow-md p-6 flex flex-col md:flex-row justify-between items-center"
+          >
+            <div className="mb-4 md:mb-0">
+              <p className="text-sm text-gray-500">
+                <strong>ID:</strong> {tokenObj.id}
+              </p>
+              <p className="text-lg font-semibold text-gray-800">
+                <strong>Email:</strong> {tokenObj.token}
+              </p>
+              <p className="text-sm text-gray-500">
+                <strong>Token:</strong> {shortenToken(tokenObj.email)}
+              </p>
+              <p className="text-sm text-gray-500">
+                <strong>Wygasa:</strong>{" "}
+                {new Date(tokenObj.expiryDate).toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-500">
+                <strong>Revoked:</strong> {tokenObj.revoked ? "Tak" : "Nie"}
+              </p>
+            </div>
+            {!tokenObj.revoked && (
+              <Button color="warning" onPress={() => handleRevoke(tokenObj.id)}>
+                Revoke
+              </Button>
+            )}
           </div>
-          {!tokenObj.revoked && (
-            <Button color="warning" onPress={() => handleRevoke(tokenObj.id)}>
-              Revoke
-            </Button>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center mt-8">
           <Pagination
             disableCursorAnimation
             showControls
+            color="warning"
             initialPage={currentPage + 1}
             total={totalPages}
             onChange={(page) => setCurrentPage(page - 1)}
@@ -123,4 +154,5 @@ function RefreshTokens() {
     </div>
   );
 }
-export default withAuth(RefreshTokens, ['ROLE_ADMIN']);
+
+export default withAuth(RefreshTokens, ["ROLE_ADMIN"]);

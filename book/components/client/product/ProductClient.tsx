@@ -116,7 +116,6 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
   const handleDeleteReview = async () => {
     if (!userReview || !token) return;
     try {
-      await deleteUserReview(userReview.reviewId.toString());
       setUserReview(null);
       fetchReviewsList();
     } catch (error) {
@@ -210,28 +209,6 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
                 <p>
                   <strong>{t("pages")}:</strong> {product.pagesCount}
                 </p>
-
-                <p>
-                  <strong>{t("price")}:</strong>{" "}
-                  {product.discountPrice ? (
-                    <>
-                      <span className="line-through">{product.price} PLN</span>{" "}
-                      <span className="text-accent">
-                        {product.discountPrice} PLN
-                      </span>
-                    </>
-                  ) : (
-                    <span>{product.price} PLN</span>
-                  )}
-                </p>
-
-                <Button
-                  className="mt-4 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center gap-2 transition-colors duration-300"
-                  onPress={handleAddToCart}
-                >
-                  <AiOutlineShoppingCart size={20} />
-                  {t("addToCart")}
-                </Button>
               </div>
 
               <div className="bg-primary-100 p-4 rounded-lg shadow-lg flex flex-col items-center">
@@ -247,6 +224,26 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
                   </span>
                   <span className="text-xl">/ 10</span>
                 </div>
+                <p className="mt-4">
+                  {product.discountPrice ? (
+                    <>
+                      <span className="line-through">{product.price} PLN</span>{" "}
+                      <span className="text-accent">
+                        {product.discountPrice} PLN
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-2xl">{product.price} PLN</span>
+                  )}
+                </p>
+
+                <Button
+                  className="mt-4 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-2 px-6 rounded-full shadow-md flex items-center gap-2 transition-colors duration-300"
+                  onPress={handleAddToCart}
+                >
+                  <AiOutlineShoppingCart size={20} />
+                  {t("addToCart")}
+                </Button>
               </div>
             </div>
           </div>

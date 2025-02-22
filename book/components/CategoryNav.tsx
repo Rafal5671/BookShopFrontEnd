@@ -100,7 +100,7 @@ const MegaMenu: FC = () => {
     };
 
     return (
-        <div className="bg-black text-white relative">
+        <div className="bg-primary-100 relative">
             <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
                 {/* Left Column: "All Categories" Button */}
                 <div className="relative">
@@ -179,7 +179,8 @@ const MegaMenu: FC = () => {
 
                 {/* Right Column: Example Links */}
                 <ul className="flex items-center space-x-6 text-sm font-medium">
-                    
+                    <li><Button>{t("discount")}</Button></li>
+                    <li><Button>{t("new")}</Button></li>
                 </ul>
             </nav>
         </div>

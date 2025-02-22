@@ -20,7 +20,7 @@ interface LoginFormProps {
 
 interface User {
   email: string;
-  role:string;
+  role: string;
 }
 
 const LoginForm = ({ showGuestOrderButton = false, onGuestOrder, handleLoginOn }: LoginFormProps) => {
@@ -36,65 +36,96 @@ const LoginForm = ({ showGuestOrderButton = false, onGuestOrder, handleLoginOn }
   } = useForm<LoginData>({ resolver: zodResolver(schema) as Resolver<LoginData> });
 
   const [user, setUser] = useState<User | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const { login } = useAuth();
+
   const onSubmit: SubmitHandler<LoginData> = async (data) => {
     try {
+      setLoginError(null); // Reset błędu przy nowej próbie logowania
       const { userEmail, userRole, accessToken, refreshToken } = await handleLogin(data);
-      
+
       if (accessToken && userEmail && userRole) {
-        // Zapisz token i rolę w kontekście (AuthProvider zajmie się też zapisem w localStorage)
-        login(accessToken, userRole,userEmail);
-          
-        // Opcjonalnie zapisujemy refreshToken
+        // Zapisz token i rolę
+        login(accessToken, userRole, userEmail);
+
+        // Zapamiętaj refreshToken
         if (refreshToken) {
           localStorage.setItem('refreshToken', refreshToken);
         }
-  
+
+        // Jeśli logowanie w trakcie zamówienia gościnnego
         if (showGuestOrderButton && handleLoginOn) {
           handleLoginOn();
           router.push('/delivery');
         } else {
           router.push('/');
         }
+      } else {
+        setLoginError('Błędny email lub hasło');
       }
     } catch (error) {
       console.error('Błąd logowania:', error);
+      setLoginError('Błędny email lub hasło');
     }
   };
-  
 
   return (
     <div className="h-auto flex items-center justify-center p-4">
       <Card className="max-w-md w-full p-8 shadow-lg rounded-xl bg-primary-100">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-6">
-          <h1 className="text-3xl font-semibold text-center mb-2">{t("loginFormTitle")}</h1>
-          <Input
-            size="lg"
-            label={t("email")}
-            variant="faded"
-            labelPlacement="outside"
-            placeholder={t("email")}
-            startContent={<FaEnvelope />}
-            {...register('email')}
-            isInvalid={!!errors.email}
-            errorMessage={errors.email?.message}
-          />
-          <Input
-            size="lg"
-            label={t("password")}
-            variant="faded"
-            labelPlacement="outside"
-            type="password"
-            placeholder={t("password")}
-            startContent={<FaLock />}
-            {...register('password')}
-            isInvalid={!!errors.password}
-            errorMessage={errors.password?.message}
-          />
+          <h1 className="text-3xl font-semibold text-center mb-2">
+            {t("loginFormTitle")}
+          </h1>
+
+          {/* Komunikat błędu zwracany z serwera */}
+          {loginError && (
+            <p className="text-red-600 text-md font-semibold">
+              {loginError}
+            </p>
+          )}
+
+          <div className="flex flex-col space-y-8">
+            <Input
+              size="lg"
+              label={t("email")}
+              variant="faded"
+              labelPlacement="outside"
+              placeholder={t("email")}
+              startContent={<FaEnvelope />}
+              {...register("email")}
+              // Jeśli jest błąd walidacji LUB błąd logowania, pole jest niepoprawne
+              isInvalid={!!errors.email || !!loginError}
+              errorMessage={errors.email?.message}
+              classNames={{
+                errorMessage: "text-md text-red-500 font-semibold",
+                // czerwona ramka w wrapperze inputu
+                inputWrapper: (!!errors.email || !!loginError) ? "border border-red-500" : ""
+              }}
+            />
+            <Input
+              size="lg"
+              label={t("password")}
+              variant="faded"
+              labelPlacement="outside"
+              type="password"
+              placeholder={t("password")}
+              startContent={<FaLock />}
+              {...register("password")}
+              // Jeśli jest błąd walidacji LUB błąd logowania, pole jest niepoprawne
+              isInvalid={!!errors.password || !!loginError}
+              errorMessage={errors.password?.message}
+              classNames={{
+                errorMessage: "text-md text-red-500 font-semibold",
+                inputWrapper: (!!errors.password || !!loginError) ? "border border-red-500" : ""
+              }}
+            />
+          </div>
+
           <Spacer y={1.5} />
           <Button className="bg-primary-200" type="submit" size="lg" fullWidth>
             {t("login")}
           </Button>
+
           {showGuestOrderButton && (
             <>
               <Spacer y={2} />

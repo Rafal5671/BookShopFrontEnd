@@ -132,6 +132,9 @@ export interface PageResponse<T> {
 }
 
 export interface OrderAdmin {
+  itemCount: any;
+  orderItems: any;
+  totalAmount: ReactNode;
   items: boolean;
   orderId: string;
   orderDate: string;

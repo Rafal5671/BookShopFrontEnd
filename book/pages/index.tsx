@@ -3,6 +3,7 @@ import ProductList from "@/components/client/product/ProductList";
 import { Product } from "@/types/types";
 import { fetchProducts } from "@/components/server/product/FetchProducts";
 import ImageCarousel from "@/components/client/slider/Carousel";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // Funkcja pomocnicza do pobierania książek według typu
 
@@ -40,6 +41,7 @@ type IndexPageProps = {
 };
 
 export default function IndexPage({ novelties, bestsellers, recommended }: IndexPageProps) {
+  const {t} = useTranslation();
   return (
     <div>
       <Head>
@@ -53,19 +55,19 @@ export default function IndexPage({ novelties, bestsellers, recommended }: Index
         <ImageCarousel />
         {/* Sekcja nowości */}
         <section className="my-8">
-          <h2 className="text-2xl font-bold mb-4">Nowości</h2>
+          <h2 className="text-2xl font-bold mb-4">{t("newhome")}</h2>
           <ProductList products={novelties} />
         </section>
 
         {/* Sekcja bestsellerów */}
         <section className="my-8">
-          <h2 className="text-2xl font-bold mb-4">Bestsellery</h2>
+          <h2 className="text-2xl font-bold mb-4">{t("best")}</h2>
           <ProductList products={bestsellers} />
         </section>
 
         {/* Sekcja polecanych */}
         <section className="my-8">
-          <h2 className="text-2xl font-bold mb-4">Polecane</h2>
+          <h2 className="text-2xl font-bold mb-4">{t("recom")}</h2>
           <ProductList products={recommended} />
         </section>
       </main>

@@ -15,7 +15,6 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
     throw new Error('Logowanie nie powiodło się');
   }
 
-  // Oczekujemy obiektu: { "accessToken": "...", "refreshToken": "..." }
   return response.json() as Promise<LoginResponse>;
 };
 

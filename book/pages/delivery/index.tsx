@@ -331,8 +331,6 @@ const DeliveryPage: React.FC = () => {
             label="Wybierz metodę dostawy"
           >
             <Radio value="courier">Kurier</Radio>
-            <Radio value="pickup">Odbiór osobisty</Radio>
-            <Radio value="parcel">Paczkomat</Radio>
           </RadioGroup>
 
           <div className="mt-6">
@@ -370,7 +368,7 @@ const DeliveryPage: React.FC = () => {
             <h3 className="font-semibold">Produkty w koszyku:</h3>
             {cart.map((product) => (
               <div key={product.bookId} className="flex justify-between mt-2">
-                <span>{product.titlePl}</span>
+                <span>{product.title}</span>
                 <span>
                   {product.quantity} x {product.price} PLN
                 </span>
@@ -394,20 +392,21 @@ const DeliveryPage: React.FC = () => {
             <p>
               {formData.street}, {formData.postalCode} {formData.city}
             </p>
-            <p>{formData.country}</p>
+
             <p>{formData.phone}</p>
             <p>{formData.email}</p>
           </div>
 
           <div className="mt-4">
             <h3 className="font-semibold">Metoda odbioru:</h3>
-            <p>{formData.deliveryMethod}</p>
+            <p>Kurier</p>
             <h3 className="font-semibold">Metoda płatności:</h3>
             <p>{formData.paymentMethod}</p>
           </div>
 
           <Checkbox
             className="mt-4"
+            color="success"
             isSelected={formData.agreement}
             onChange={(isSelected) =>
               setFormData((prev) => ({ ...prev, agreement: !!isSelected }))

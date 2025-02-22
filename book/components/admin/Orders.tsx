@@ -284,6 +284,7 @@ function Orders() {
         <Pagination
           total={totalPages}
           initialPage={1}
+          color="warning"
           page={currentPage}
           onChange={(page) => setCurrentPage(page)}
         />

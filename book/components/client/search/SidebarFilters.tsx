@@ -161,6 +161,16 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
         <p className="mb-2 font-semibold">{t("price")}</p>
         <Slider
           value={priceRange}
+          classNames={{
+            filler: "bg-gradient-to-r from-primary-500 to-secondary-400",
+            labelWrapper: "mb-2",
+            thumb: [
+              "transition-size",
+              "bg-gradient-to-r from-secondary-400 to-primary-500",
+              "data-[dragging=true]:shadow-lg data-[dragging=true]:shadow-black/20",
+              "data-[dragging=true]:w-7 data-[dragging=true]:h-7 data-[dragging=true]:after:h-6 data-[dragging=true]:after:w-6",
+            ],
+          }}
           step={10}
           minValue={0}
           maxValue={maxPrice}

@@ -18,7 +18,7 @@ export function withAuth<P extends JSX.IntrinsicAttributes>(
         if (!token) {
           router.push('/login');
         } else if (allowedRoles.length > 0 && !allowedRoles.includes(userRole || "")) {
-          router.push('/unauthorized');
+          router.push('/');
         }
       }, [token, userRole, loading, router]);
   

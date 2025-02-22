@@ -58,7 +58,7 @@ const NavbarProducts: React.FC<NavbarProductsProps> = ({
           >
             <option value="">Wybierz kategorię</option>
             {categories.map((category) => (
-              <option key={category.categoryId} value={category.categoryId}>
+              <option key={category.id} value={category.id}>
                 {category.namePl}
               </option>
             ))}

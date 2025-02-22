@@ -178,7 +178,7 @@ const Categories = () => {
       <main className="p-4">
         <div className="flex justify-end mb-4">
           <Button
-            color="primary"
+            className="bg-blue-500"
             onPress={onOpen}
           >
             Dodaj Kategorię
@@ -246,6 +246,7 @@ const Categories = () => {
             <Pagination
               disableCursorAnimation
               showControls
+              color="warning"
               initialPage={currentPage + 1} // NextUI jest 1-based
               total={totalPages}
               onChange={(page) => setCurrentPage(page - 1)} // Konwertuj na 0-based
