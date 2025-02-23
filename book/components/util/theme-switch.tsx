@@ -37,12 +37,12 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
     setIsMounted(true);
   }, []);
 
-  // Prevent Hydration Mismatch
+
   if (!isMounted) return <div className="w-6 h-6" />;
 
   return (
     <Button isIconOnly
-      onClick={onChange} // Ustawienie onClick na przycisk
+      onClick={onChange} 
     >
       <Component
         {...getBaseProps({

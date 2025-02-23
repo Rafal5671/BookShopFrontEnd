@@ -50,12 +50,12 @@ function AdminPage() {
 
   return (
     <div className="flex w-full">
-      {/* Pasek boczny */}
+
       <div className="sticky top-0 h-screen border-r border-gray-200 bg-white shadow">
         <Sidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       </div>
 
-      {/* Główna zawartość */}
+
       <main className="flex-1 p-6">
         {renderSection()}
       </main>

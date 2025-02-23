@@ -1,7 +1,7 @@
-'use client';  // Komponent klientowy
+'use client';
 
 import { useState, useEffect } from "react";
-import ProductCard from "@/components/client/product/ProductCard"; // Komponent karty produktu
+import ProductCard from "@/components/client/product/ProductCard"; 
 import { useTranslation } from "@/hooks/useTranslation";
 import { Product } from "@/types/types";
 import { Spinner } from "@nextui-org/react";

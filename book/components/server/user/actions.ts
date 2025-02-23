@@ -2,7 +2,7 @@ import { fetchWithAuth } from "@/auth/apiClient";
 import { User } from "@/types/types";
 
 export async function fetchUserProfileServer(): Promise<User> {
-  // 1) Wywołujemy fetchWithAuth zamiast fetch
+
   const response = await fetchWithAuth("http://localhost:8080/api/customers/profile/me", {
     method: "GET",
     headers: {
@@ -19,17 +19,10 @@ export async function fetchUserProfileServer(): Promise<User> {
   return result;
 }
 
-/**
- * Usuwa recenzję o podanym ID.
- *
- * @param token - token uwierzytelniający
- * @param reviewId - ID recenzji do usunięcia
- * @returns Promise<void>
- * @throws Error w przypadku braku tokenu lub błędu w fetch
- */
+
 export async function deleteReviewServer(reviewId: number): Promise<void> {
   try {
-    // Używamy fetchWithAuth (tak jak w fetchUserProfileServer)
+
     const response = await fetchWithAuth(
       `http://localhost:8080/api/reviews/${reviewId}`,
       {

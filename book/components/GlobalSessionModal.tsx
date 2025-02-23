@@ -5,12 +5,12 @@ import { Modal, Button, ModalHeader, ModalContent, ModalBody, ModalFooter } from
 export default function GlobalSessionModal() {
   const { sessionExpired, logout } = useAuth();
 
-  // Gdy sessionExpired = true, modal jest otwarty
+
   return (
     <Modal
       isOpen={sessionExpired}
       onOpenChange={() => {}}
-      isDismissable={false} // aby nie dało się zamknąć klikając w tło
+      isDismissable={false} 
     >
       <ModalContent>
         <ModalHeader>Twoja sesja wygasła</ModalHeader>

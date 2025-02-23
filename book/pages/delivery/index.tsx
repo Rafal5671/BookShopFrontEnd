@@ -23,6 +23,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { FormData } from "@/types/types";
 import LoginForm from "@/components/client/auth/LoginForm";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type Product = {
   bookId: number;
@@ -57,7 +58,7 @@ const DeliveryPage: React.FC = () => {
   const [cart, setCart] = useState<Product[]>([]);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
+  const { t } = useTranslation();
   const fetchUserData = useCallback(
     (token: string) => {
       startTransition(async () => {
@@ -146,14 +147,13 @@ const DeliveryPage: React.FC = () => {
         city: formData.city,
         country: formData.country,
       },
-      // Przesyłamy tylko id produktów i ilości – serwer obliczy cenę
       items: cart.map((p) => ({
         bookId: p.bookId,
         quantity: p.quantity,
       })),
-      paymentMethod: formData.paymentMethod, // Przekazujemy metodę płatności
+      paymentMethod: formData.paymentMethod,
     };
-  
+
     startTransition(async () => {
       try {
         const result = await createOrderServer(orderData);
@@ -164,7 +164,7 @@ const DeliveryPage: React.FC = () => {
             "Brak 'url' w odpowiedzi z backendu (Stripe Checkout)."
           );
         }
-  
+
         if (formData.paymentMethod === "online" && url) {
           window.location.href = url;
         } else {
@@ -175,14 +175,13 @@ const DeliveryPage: React.FC = () => {
       } catch (error: any) {
         console.error("Błąd podczas składania zamówienia:", error);
         alert(
-          `Wystąpił problem podczas składania zamówienia: ${
-            error.message ?? "Nieznany błąd"
+          `Wystąpił problem podczas składania zamówienia: ${error.message ?? "Nieznany błąd"
           }`
         );
       }
     });
   };
-  
+
 
   if (loading) {
     return <div>Ładowanie...</div>;
@@ -202,7 +201,7 @@ const DeliveryPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mt-10 mb-10 mx-auto p-8 bg-primary-200 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold mb-6 text-center">Zamówienie</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">{t("delivery_order_title")}</h1>
       <div className="mb-6">
         <Progress
           value={getProgressPercentage()}
@@ -212,48 +211,48 @@ const DeliveryPage: React.FC = () => {
         />
         <div className="flex justify-between text-sm mt-2">
           <span className={step === 1 ? "font-bold text-primary" : "text-gray-500"}>
-            Dane Adresowe
+            {t("delivery_address_data")}
           </span>
           <span className={step === 2 ? "font-bold text-primary" : "text-gray-500"}>
-            Metoda Odbioru
+            {t("delivery_method_title")}
           </span>
           <span className={step === 3 ? "font-bold text-primary" : "text-gray-500"}>
-            Podsumowanie Zamówienia
+            {t("order_summary_title")}
           </span>
         </div>
       </div>
 
       {step === 1 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Dane do wysyłki</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("delivery_shipping_data")}</h2>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Imię"
-              placeholder="Wpisz swoje imię"
+              label={t("firstName_label")}
+              placeholder={t("firstName_placeholder")}
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
               readOnly={!!(token && userData?.firstName)}
             />
             <Input
-              label="Nazwisko"
-              placeholder="Wpisz swoje nazwisko"
+              label={t("lastName_label")}
+              placeholder={t("lastName_placeholder")}
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
               readOnly={!!(token && userData?.lastName)}
             />
             <Input
-              label="Numer telefonu"
-              placeholder="Wpisz swój numer telefonu"
+              label={t("phone_label")}
+              placeholder={t("phone_placeholder")}
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
               readOnly={!!(token && userData?.phone)}
             />
             <Input
-              label="Email"
-              placeholder="Wpisz swój email"
+              label={t("email_label")}
+              placeholder={t("email_placeholder")}
               name="email"
               value={formData.email}
               onChange={handleInputChange}
@@ -261,45 +260,45 @@ const DeliveryPage: React.FC = () => {
             />
 
             <Select
-              label="Kraj"
-              placeholder="Wybierz kraj"
+              label={t("country_label")}
+              placeholder={t("country_placeholder")}
               value={formData.country}
               onChange={(value) => handleCountryChange(value.toString())}
             >
               <SelectItem key="Polska" value="Polska">
-                Polska
+                {t("country_poland")}
               </SelectItem>
               <SelectItem key="Niemcy" value="Niemcy">
-                Niemcy
+                {t("country_germany")}
               </SelectItem>
               <SelectItem key="Czechy" value="Czechy">
-                Czechy
+                {t("country_czech")}
               </SelectItem>
               <SelectItem key="Słowacja" value="Słowacja">
-                Słowacja
+                {t("country_slovakia")}
               </SelectItem>
               <SelectItem key="Litwa" value="Litwa">
-                Litwa
+                {t("country_lithuania")}
               </SelectItem>
             </Select>
 
             <Input
-              label="Ulica"
-              placeholder="Wpisz swoją ulicę"
+              label={t("street_label")}
+              placeholder={t("street_placeholder")}
               name="street"
               value={formData.street}
               onChange={handleInputChange}
             />
             <Input
-              label="Kod pocztowy"
-              placeholder="00-000"
+              label={t("postalCode_label")}
+              placeholder={t("postalCode_placeholder")}
               name="postalCode"
               value={formData.postalCode}
               onChange={handleInputChange}
             />
             <Input
-              label="Miasto"
-              placeholder="Wpisz miasto"
+              label={t("city_label")}
+              placeholder={t("city_placeholder")}
               name="city"
               value={formData.city}
               onChange={handleInputChange}
@@ -308,10 +307,10 @@ const DeliveryPage: React.FC = () => {
 
           <div className="flex justify-between mt-6">
             <Button disabled color="default">
-              Wróć
+              {t("back")}
             </Button>
             <Button color="default" onClick={handleNextStep}>
-              Dalej
+              {t("next")}
             </Button>
           </div>
         </div>
@@ -319,7 +318,7 @@ const DeliveryPage: React.FC = () => {
 
       {step === 2 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Metoda wysyłki</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("delivery_method_title")}</h2>
           <RadioGroup
             value={formData.deliveryMethod}
             onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -328,9 +327,9 @@ const DeliveryPage: React.FC = () => {
                 deliveryMethod: e.target.value,
               }))
             }
-            label="Wybierz metodę dostawy"
+            label={t("delivery_method_label")}
           >
-            <Radio value="courier">Kurier</Radio>
+            <Radio value="courier">{t("delivery_courier")}</Radio>
           </RadioGroup>
 
           <div className="mt-6">
@@ -344,17 +343,17 @@ const DeliveryPage: React.FC = () => {
               }
               label="Wybierz metodę płatności"
             >
-              <Radio value="online">Płatność online (Stripe)</Radio>
-              <Radio value="cash">Gotówka</Radio>
+              <Radio value="online">{t("payment_online")}</Radio>
+              <Radio value="cash">{t("payment_cash")}</Radio>
             </RadioGroup>
           </div>
 
           <div className="flex justify-between mt-6">
             <Button color="default" onClick={handlePreviousStep}>
-              Wróć
+              {t("back")}
             </Button>
             <Button color="default" onClick={handleNextStep}>
-              Dalej
+              {t("next")}
             </Button>
           </div>
         </div>
@@ -362,10 +361,10 @@ const DeliveryPage: React.FC = () => {
 
       {step === 3 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Podsumowanie Zamówienia</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("order_summary_title")}</h2>
 
           <div className="mb-4">
-            <h3 className="font-semibold">Produkty w koszyku:</h3>
+            <h3 className="font-semibold">{t("cart_products")}</h3>
             {cart.map((product) => (
               <div key={product.bookId} className="flex justify-between mt-2">
                 <span>{product.title}</span>
@@ -376,7 +375,7 @@ const DeliveryPage: React.FC = () => {
             ))}
             <div className="flex justify-between mt-2">
               <span>
-                <strong>Suma:</strong>
+                <strong>{t("total")}</strong>
               </span>
               <span>
                 <strong>{getTotalPrice()} PLN</strong>
@@ -385,7 +384,7 @@ const DeliveryPage: React.FC = () => {
           </div>
 
           <div className="mt-4">
-            <h3 className="font-semibold">Adres dostawy:</h3>
+            <h3 className="font-semibold">{t("delivery_address")}</h3>
             <p>
               {formData.firstName} {formData.lastName}
             </p>
@@ -398,9 +397,9 @@ const DeliveryPage: React.FC = () => {
           </div>
 
           <div className="mt-4">
-            <h3 className="font-semibold">Metoda odbioru:</h3>
-            <p>Kurier</p>
-            <h3 className="font-semibold">Metoda płatności:</h3>
+            <h3 className="font-semibold">{t("pickup_method")}</h3>
+            <p>{t("delivery_courier")}</p>
+            <h3 className="font-semibold">{t("payment_method")}</h3>
             <p>{formData.paymentMethod}</p>
           </div>
 
@@ -412,19 +411,19 @@ const DeliveryPage: React.FC = () => {
               setFormData((prev) => ({ ...prev, agreement: !!isSelected }))
             }
           >
-            Akceptuję regulamin zakupów
+            {t("accept_terms")}
           </Checkbox>
 
           <div className="flex justify-between mt-6">
             <Button color="default" onPress={handlePreviousStep}>
-              Wróć
+              {t("back")}
             </Button>
             <Button
               color="default"
               isDisabled={!formData.agreement}
               onPress={handleOrderSubmit}
             >
-              Potwierdź
+              {t("confirm")}
             </Button>
           </div>
         </div>

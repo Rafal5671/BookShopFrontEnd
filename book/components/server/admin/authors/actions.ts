@@ -3,7 +3,7 @@
 import { fetchWithAuth } from "@/auth/apiClient";
 
 export async function addAuthor(firstName: string, lastName: string) {
-  // Wywołujemy fetchWithAuth
+
   const response = await fetchWithAuth("http://localhost:8080/api/authors", {
     method: "POST",
     headers: {
@@ -23,10 +23,10 @@ export async function fetchAuthorsServer(page: number, query?: string) {
   const springPageIndex = page - 1;
   let endpoint: string;
   if (query && query.trim() !== "") {
-    // Endpoint wyszukiwania autorów
+
     endpoint = `http://localhost:8080/api/admin/authors?query=${encodeURIComponent(query)}&page=${springPageIndex}&size=21`;
   } else {
-    // Endpoint pobierający wszystkich autorów
+
     endpoint = `http://localhost:8080/api/admin/authors?page=${springPageIndex}&size=21`;
   }
   const response = await fetchWithAuth(endpoint, {
@@ -37,7 +37,7 @@ export async function fetchAuthorsServer(page: number, query?: string) {
   });
 
   if (response.status === 401) {
-    // Możesz wyrzucić błąd lub obsłużyć inaczej
+
     throw new Error("SESSION_EXPIRED");
   }
 
@@ -49,7 +49,7 @@ export async function fetchAuthorsServer(page: number, query?: string) {
 }
 
 
-// Usuwa autora po ID
+
 export async function deleteAuthorServer(authorId: number) {
   const response = await fetchWithAuth(
     `http://localhost:8080/api/admin/authors/${authorId}`,

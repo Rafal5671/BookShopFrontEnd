@@ -10,9 +10,9 @@ import { AiOutlineShoppingCart } from "react-icons/ai";
 
 const SearchPage: React.FC = () => {
   const router = useRouter();
-  const { search: searchQuery, genreId: queryGenreId, categoryId: queryCategoryId } = router.query;
+  const { search: searchQuery, genreId: queryGenreId, categoryId: queryCategoryId, onSale: queryOnSale, new: queryNew  } = router.query;
 
-  // Stany na dane filtrujące i książki
+
   const [books, setBooks] = useState<Product[]>([]);
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
   const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
@@ -25,10 +25,9 @@ const SearchPage: React.FC = () => {
     freeShipping: false,
     priceRange: [0, 5000],
   });
-  // Nowy stan do sortowania
+
   const [sortOption, setSortOption] = useState<string>("default");
 
-  // Pobieranie wyszukiwanej frazy jako string
   const searchPhrase = Array.isArray(searchQuery) ? searchQuery.join(" ") : searchQuery || "";
 
   const { addToCart } = useCart();
@@ -57,8 +56,16 @@ const SearchPage: React.FC = () => {
       }));
     }
   }, [queryCategoryId]);
+  useEffect(() => {
+    if (queryOnSale && queryOnSale === "true") {
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        freeShipping: true,
+      }));
+    }
+  }, [queryOnSale]);
+  
 
-  // Pobieranie danych filtrujących (aggregated data)
   useEffect(() => {
     const fetchAggregatedData = async () => {
       try {
@@ -68,6 +75,10 @@ const SearchPage: React.FC = () => {
         if (filters.selectedCategories.length > 0) params.append("categoryId", filters.selectedCategories.join(","));
         if (filters.selectedAuthors.length > 0) params.append("authorId", filters.selectedAuthors.join(","));
         if (filters.freeShipping) params.append("onSale", "true");
+        if (router.query.new === "true") {
+          params.append("isNew", "true");
+        }
+        
         if (filters.priceRange[0] > 0) params.append("priceMin", filters.priceRange[0].toString());
         if (filters.priceRange[1] < maxPrice) params.append("priceMax", filters.priceRange[1].toString());
         const lang = router.locale || "pl";
@@ -106,7 +117,6 @@ const SearchPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  // Zmiana sortowania wymusza reset bieżącej strony i pobranie nowych danych
   useEffect(() => {
     setCurrentPage(1);
   }, [sortOption]);
@@ -123,12 +133,13 @@ const SearchPage: React.FC = () => {
         if (filters.priceRange[0] > 0) params.append("priceMin", filters.priceRange[0].toString());
         if (filters.priceRange[1] < maxPrice) params.append("priceMax", filters.priceRange[1].toString());
 
-        // Dodanie sortowania, jeśli wybrana opcja nie jest domyślna
         if (sortOption && sortOption !== "default") {
           params.append("sortBy", sortOption);
         }
+        if (router.query.new === "true") {
+          params.append("isNew", "true");
+        }
 
-        // Użycie numeru strony oraz limitu
         params.append("page", currentPage.toString());
         params.append("limit", "10");
         const lang = router.locale || "pl";
@@ -183,7 +194,10 @@ const SearchPage: React.FC = () => {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-4">
         <div className="text-xl font-semibold">
-          {searchPhrase ? `Wyniki wyszukiwania frazy: "${searchPhrase}"` : "Wyniki wyszukiwania"}
+          {searchPhrase
+            ? `${t("searchResultsForr")} "${searchPhrase}"`
+            : t("searchResults")
+          }
         </div>
         <div>
           <select
@@ -191,11 +205,11 @@ const SearchPage: React.FC = () => {
             onChange={(e) => setSortOption(e.target.value)}
             className="p-2 border rounded"
           >
-            <option value="default">Sortuj</option>
-            <option value="priceAsc">Cena: rosnąco</option>
-            <option value="priceDesc">Cena: malejąco</option>
-            <option value="titleAsc">Tytuł: A-Z</option>
-            <option value="titleDesc">Tytuł: Z-A</option>
+            <option value="default">{t("sort_default")}</option>
+            <option value="priceAsc">{t("sort_priceAsc")}</option>
+            <option value="priceDesc">{t("sort_priceDesc")}</option>
+            <option value="titleAsc">{t("sort_titleAsc")}</option>
+            <option value="titleDesc">{t("sort_titleDesc")}</option>
           </select>
         </div>
       </div>
@@ -229,11 +243,12 @@ const SearchPage: React.FC = () => {
 
                 {/* Szczegóły książki */}
                 <div className="sm:w-1/3 sm:ml-4 mb-4 sm:mb-0 overflow-y-auto">
-                  <Link href={`/product/${book.bookId}`}>
-                    <p className="text-xl font-semibold mb-2  cursor-pointer hover:underline">
-                      {book.title}
-                    </p>
-                  </Link>
+                  <p
+                    onClick={() => router.push(`/product/${book.bookId}`)}
+                    className="text-xl font-semibold mb-2 cursor-pointer hover:underline"
+                  >
+                    {book.title}
+                  </p>
                   <p className="text-sm mb-2">{getAuthors(book.authors)}</p>
                   <p className="text-sm mb-2">
                     <strong>{t("publisher")}:</strong> {displayPublisherNames(book)}
@@ -242,10 +257,21 @@ const SearchPage: React.FC = () => {
                     <strong>{t("numberOfPages")}:</strong> {book.pagesCount}
                   </p>
                   <p className="text-sm mb-2">
-                    <strong>{t("language")}:</strong> {book.language === "POLISH" ? "Polski" : book.language}
+                    <strong>{t("language")}:</strong> {
+                      book.language === "POLISH" ? t("language.polish")
+                        : book.language === "ENGLISH" ? t("language.english")
+                          : book.language === "JAPANESE" ? t("language.japanese")
+                            : book.language === "SPANISH" ? t("language.spanish")
+                              : book.language === "FRENCH" ? t("language.french")
+                                : book.language
+                    }
                   </p>
                   <p className="text-sm mb-2">
-                    <strong>{t("coverType")}:</strong> {book.coverType === "HARD" ? "Twarda" : book.coverType === "SOFT" ? "Miękka" : book.coverType}
+                    <strong>{t("coverType")}:</strong> {
+                      book.coverType === "HARD" ? t("coverType.hard")
+                        : book.coverType === "SOFT" ? t("coverType.soft")
+                          : book.coverType
+                    }
                   </p>
 
                   <p className="text-sm mb-2">
@@ -307,6 +333,7 @@ const SearchPage: React.FC = () => {
             <Pagination
               total={totalPages}
               initialPage={1}
+              color="warning"
               page={currentPage}
               onChange={handlePageChange}
               showControls
@@ -314,7 +341,7 @@ const SearchPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

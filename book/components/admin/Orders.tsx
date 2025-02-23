@@ -45,31 +45,31 @@ function Orders() {
   const [filterStatus, setFilterStatus] = useState<string>("Wszystkie");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Sortowanie
+
   const [sortOption, setSortOption] = useState<SortOption>("dateAsc");
 
-  // Paginacja
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const rowsPerPage = 4;
 
-  // Modal – stan wybranego zamówienia
+
   const [selectedOrder, setSelectedOrder] = useState<OrderAdmin | null>(null);
 
-  // Użycie useDisclosure do sterowania otwieraniem modala
+
   const detailsDisclosure = useDisclosure();
 
-  // Auth
+
   const { token } = useAuth();
 
-  // Stan ładowania i błędów
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // React 18: do zarządzania asynchronicznymi operacjami
+ 
   const [isPending, startTransition] = useTransition();
 
-  // Funkcja pomocnicza do formatowania daty
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString("pl-PL", {
@@ -79,7 +79,6 @@ function Orders() {
     });
   };
 
-  // Pobieranie zamówień (Server Action)
   const fetchOrders = useCallback(async () => {
     if (!token) {
       setError("Brak tokenu autoryzacji. Zaloguj się ponownie.");
@@ -98,8 +97,7 @@ function Orders() {
           searchTerm,
           filterStatus
         );
-        // Zakładamy, że data.content to tablica obiektów typu OrderAdmin,
-        // a data.totalPages zawiera liczbę stron
+ 
         setOrders(data.content);
         setTotalPages(data.totalPages);
       } catch (err: any) {
@@ -114,7 +112,7 @@ function Orders() {
     fetchOrders();
   }, [currentPage, sortOption, fetchOrders]);
 
-  // Aktualizacja statusu zamówienia (Server Action)
+
   const updateOrderStatus = useCallback(
     async (orderId: string, newStatus: string) => {
       const mappedStatus = STATUS_MAP[newStatus];
@@ -141,7 +139,7 @@ function Orders() {
     [token, fetchOrders]
   );
 
-  // Filtrowanie lokalne (status i searchTerm)
+
   const filteredOrders = orders.filter((order) => {
     if (filterStatus !== "Wszystkie") {
       if (REVERSE_STATUS_MAP[order.status] !== filterStatus) {
@@ -161,12 +159,9 @@ function Orders() {
     return true;
   });
 
-  // Reset paginacji przy zmianie filtra
   function resetPagination() {
     setCurrentPage(1);
   }
-
-  // Otwieranie modala – ustawienie wybranego zamówienia i otwarcie modala
 
 
   if (isLoading) return <p>Ładowanie zamówień...</p>;

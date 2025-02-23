@@ -19,9 +19,6 @@ const AddPublisher: React.FC<AddPublisherProps> = ({ onPublisherAdded }) => {
     }
 
     try {
-      // Przykład endpointu POST do dodania wydawcy
-      // Upewnij się, że taki endpoint istnieje w Spring:
-      // POST /api/admin/publishers
       const response = await fetch("http://localhost:8080/api/admin/publishers", {
         method: "POST",
         headers: {

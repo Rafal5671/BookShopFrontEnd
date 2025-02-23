@@ -28,20 +28,18 @@ type CartProviderProps = {
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cart, setCart] = useState<Product[]>([]);
 
-  // Load cart from localStorage when component mounts
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
       try {
-        setCart(JSON.parse(storedCart)); // Load the cart from localStorage
+        setCart(JSON.parse(storedCart));
       } catch (error) {
         console.error("Error parsing cart data from localStorage:", error);
-        setCart([]); // Clear the cart if there's an error in parsing
+        setCart([]);
       }
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     if (cart.length > 0) {
       localStorage.setItem("cart", JSON.stringify(cart));
@@ -54,14 +52,14 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       const existingProduct = updatedCart.find((p) => p.bookId === product.bookId);
 
       if (existingProduct) {
-        // If product exists, update quantity
+
         existingProduct.quantity += 1;
       } else {
-        // Add new product to the cart
+
         updatedCart.push({ ...product, quantity: 1 });
       }
 
-      // Update localStorage
+
       localStorage.setItem("cart", JSON.stringify(updatedCart));
 
       return updatedCart;
@@ -73,7 +71,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   const updateQuantity = (productId: number, quantity: number) => {
-    // Prevent quantity from being less than 1
+
     if (quantity < 1) return;
 
     setCart((prevCart) =>
@@ -85,10 +83,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const clearCart = () => {
     setCart([]);
-    localStorage.removeItem("cart"); // Remove cart from localStorage if it's cleared
+    localStorage.removeItem("cart"); 
   };
 
-  // Calculate the total number of items in the cart
   const cartItemCount = cart.reduce((total, product) => total + product.quantity, 0);
 
   return (

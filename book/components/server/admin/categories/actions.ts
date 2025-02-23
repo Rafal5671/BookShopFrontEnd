@@ -8,7 +8,7 @@ export async function fetchCategoriesServer(
   page: number,
   size: number
 ): Promise<PageResponse<Category>> {
-  // 1) Używamy fetchWithAuth
+
   const response = await fetchWithAuth(`${API_BASE_URL}?page=${page}&size=${size}`, {
     method: "GET",
     headers: {

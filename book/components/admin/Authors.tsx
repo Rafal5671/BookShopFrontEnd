@@ -26,12 +26,12 @@ const Authors: React.FC = () => {
   const [authors, setAuthors] = useState<Author[]>([]);
   const { token, sessionExpired, setSessionExpired } = useAuth();
 
-  const [currentPage, setCurrentPage] = useState(1); // 1-based
+  const [currentPage, setCurrentPage] = useState(1); 
   const [totalPages, setTotalPages] = useState(1);
 
-  // Stan, który odzwierciedla aktualną wartość wpisaną w input
+
   const [searchTerm, setSearchTerm] = useState("");
-  // Stan, który jest używany do wyszukiwania – aktualizowany dopiero po wciśnięciu Enter
+
   const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -41,10 +41,10 @@ const Authors: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // W React 18 do operacji asynchronicznych "na żądanie" używamy useTransition:
+
   const [isPending, startTransition] = useTransition();
 
-  // Funkcja pobierająca autorów – wykorzystujemy appliedSearchTerm
+
   const fetchAuthors = useCallback(() => {
     if (!token) return;
 
@@ -52,7 +52,7 @@ const Authors: React.FC = () => {
       try {
         const data = await fetchAuthorsServer(currentPage, appliedSearchTerm);
         console.log("Wyszukiwanie dla:", appliedSearchTerm);
-        // data zawiera obiekt zwrócony przez backend (np. { content, totalPages })
+
         setAuthors(data.content);
         setTotalPages(data.totalPages);
       } catch (error: any) {
@@ -65,12 +65,12 @@ const Authors: React.FC = () => {
     });
   }, [token, currentPage, appliedSearchTerm, setSessionExpired]);
 
-  // Efekt pobierający autorów przy zmianie currentPage lub appliedSearchTerm
+
   useEffect(() => {
     fetchAuthors();
   }, [fetchAuthors]);
 
-  // Funkcja wywoływana po naciśnięciu Enter – aktualizuje appliedSearchTerm i resetuje stronę do 1
+
   const handleSearch = () => {
     setCurrentPage(1);
     setAppliedSearchTerm(searchTerm);

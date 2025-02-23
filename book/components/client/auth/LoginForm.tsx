@@ -41,19 +41,19 @@ const LoginForm = ({ showGuestOrderButton = false, onGuestOrder, handleLoginOn }
 
   const onSubmit: SubmitHandler<LoginData> = async (data) => {
     try {
-      setLoginError(null); // Reset błędu przy nowej próbie logowania
+      setLoginError(null); 
       const { userEmail, userRole, accessToken, refreshToken } = await handleLogin(data);
 
       if (accessToken && userEmail && userRole) {
-        // Zapisz token i rolę
+
         login(accessToken, userRole, userEmail);
 
-        // Zapamiętaj refreshToken
+
         if (refreshToken) {
           localStorage.setItem('refreshToken', refreshToken);
         }
 
-        // Jeśli logowanie w trakcie zamówienia gościnnego
+  
         if (showGuestOrderButton && handleLoginOn) {
           handleLoginOn();
           router.push('/delivery');

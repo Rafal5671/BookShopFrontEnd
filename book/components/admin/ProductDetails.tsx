@@ -27,13 +27,12 @@ type Author = {
   export enum CoverType {
     HARDCOVER = "HARDCOVER",
     PAPERBACK = "PAPERBACK",
-    // dodaj inne typy okładek jeśli są
   }
   
   export enum LanguageBook {
     POLISH = "POLISH",
     ENGLISH = "ENGLISH",
-    // dodaj inne języki jeśli są
+
   }
   
   type Product = {
@@ -43,7 +42,7 @@ type Author = {
     originalTitle: string;
     imageUrl?: string;
     pagesCount: number;
-    releaseDate: string; // Przyjmujemy, że data w formie stringa
+    releaseDate: string; 
     price: number;
     discountPrice?: number;
     descriptionPl?: string;
@@ -70,7 +69,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
   const handleEditClick = () => setIsEditing(true);
   const handleSaveClick = () => {
-    // Implementacja zapisywania zmian np. PUT do API
+
     console.log("Zapisano zmiany:", editedProduct);
     setIsEditing(false);
   };

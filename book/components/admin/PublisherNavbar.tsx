@@ -9,8 +9,8 @@ import {
 interface PublishersNavbarProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  onOpen: () => void;           // Funkcja otwierająca modal dodawania wydawcy
-  onSearch: () => void;         // Funkcja wywoływana po naciśnięciu Enter
+  onOpen: () => void;      
+  onSearch: () => void; 
 }
 
 const PublishersNavbar: React.FC<PublishersNavbarProps> = ({

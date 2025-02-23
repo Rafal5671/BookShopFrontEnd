@@ -86,7 +86,6 @@ const NavbarProducts: React.FC<NavbarProductsProps> = ({
           </button>
         </NavbarItem>
 
-        {/* Przycisk "Dodaj produkt" widoczny tylko dla administratora */}
         {userRole === "ROLE_ADMIN" && (
           <NavbarItem>
             <button onClick={onOpen} className="bg-blue-500 text-white px-4 py-2 rounded">

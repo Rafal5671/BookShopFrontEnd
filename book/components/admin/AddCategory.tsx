@@ -6,7 +6,7 @@ export type Category = {
     categoryId: number;
     nameEn: string;
     namePl: string;
-    createdAt: string; // ISO string
+    createdAt: string;
   };
 interface AddCategoryProps {
   initialData?: Category | null;

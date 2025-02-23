@@ -95,7 +95,7 @@ const RegisterForm: React.FC = () => {
   });
 
   interface JwtPayload {
-    // Dostosuj interfejs do struktury Twojego tokena.
+
     sub: string;
     role: string;
     exp: number;
@@ -106,7 +106,7 @@ const RegisterForm: React.FC = () => {
   }, [locale, reset]);
   const { login } = useAuth();
   const onSubmit = async (data: FormData) => {
-    // Przed wysłaniem usuwamy pola używane wyłącznie do walidacji formularza
+
     const { confirmPassword, terms, dataProcessing, ...customerData } = data;
 
     try {
@@ -122,19 +122,20 @@ const RegisterForm: React.FC = () => {
         throw new Error("Rejestracja nie powiodła się");
       }
 
-      // Oczekujemy obiektu: { accessToken: string, refreshToken: string }
-      const result = await response.json();
-      reset(); // Reset formularza po udanej rejestracji
 
-      // Automatyczne logowanie użytkownika – zakładamy, że backend zwróci tokeny analogiczne do logowania
+      const result = await response.json();
+      reset();
+
+
       const { accessToken, refreshToken } = result;
 
       if (accessToken) {
-        // Dekodujemy token, aby pobrać np. rolę użytkownik
+
         const decodedToken: any = jwtDecode(accessToken);
         const userRole = decodedToken.role || '';
+        const userEmail = decodedToken.sub || '';
 
-        login(accessToken, userRole);
+        login(accessToken, userRole,userEmail);
         if (refreshToken) {
           localStorage.setItem("refreshToken", refreshToken);
         }
@@ -145,7 +146,7 @@ const RegisterForm: React.FC = () => {
       }
     } catch (error) {
       console.error("Błąd rejestracji:", error);
-      // Tutaj możesz wyświetlić komunikat błędu użytkownikowi
+
     }
   };
   

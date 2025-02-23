@@ -112,9 +112,7 @@ export async function fetchAllReviews(productId: string): Promise<Review[]> {
   }
 }
 
-/**
- * Aktualizuje recenzję użytkownika.
- */
+
 export async function updateUserReview(
   productId: string,
   reviewId: number,
@@ -144,9 +142,7 @@ export async function updateUserReview(
   }
 }
 
-/**
- * Usuwa recenzję użytkownika.
- */
+
 export async function deleteUserReview(reviewId: string): Promise<void> {
   try {
     const res = await fetchWithAuth(

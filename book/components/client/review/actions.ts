@@ -22,8 +22,7 @@ export async function submitReview(
     method,
     headers: {
       'Content-Type': 'application/json',
-      // Jeżeli naprawdę musisz ręcznie przekazać token (np. serwerowo), możesz to zostawić:
-      // 'Authorization': `Bearer ${token}`,
+
     },
     body: JSON.stringify({
       rating,
@@ -52,7 +51,6 @@ export async function deleteReview(
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${token}`,
     },
   });
 

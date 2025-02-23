@@ -44,19 +44,18 @@ type Product = {
   rating: number;
   reviews: { reviewId: number; user: string; content: string; rating: number }[];
   releaseDate: string;
-  // Przyjmujemy, że kategoria i gatunki są zwracane jako string (możesz to dostosować do własnych potrzeb)
   category?: string;
   genres?: string[];
   stock?: number;
 };
 
 const Products = () => {
-  // Stany pól filtrowania (inputy)
+
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [genreFilter, setGenreFilter] = useState("");
 
-  // Stany zastosowanych filtrów (aplikowanych po kliknięciu "Filtruj")
+
   const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
   const [appliedCategoryFilter, setAppliedCategoryFilter] = useState("");
   const [appliedGenreFilter, setAppliedGenreFilter] = useState("");
@@ -68,12 +67,12 @@ const Products = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // NextUI – kontrola modali
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const detailsDisclosure = useDisclosure();
   const editDisclosure = useDisclosure();
 
-  // Modal potwierdzenia usunięcia
+
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     product: Product | null;
@@ -82,16 +81,16 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // Liczba produktów na stronę
+
   const productsPerPage = 20;
 
-  // Uwierzytelnianie – pobieramy token oraz rolę użytkownika
+
   const { token, userRole } = useAuth();
 
-  // Dla operacji asynchronicznych
+
   const [isPending, startTransition] = useTransition();
 
-  // Funkcja pobierająca produkty z serwera – korzystamy z zastosowanych filtrów
+
   const fetchProducts = useCallback(
     async (page: number) => {
       if (!token) return;
@@ -119,14 +118,14 @@ const Products = () => {
     [token, appliedSearchTerm, appliedCategoryFilter, appliedGenreFilter]
   );
 
-  // Pobieramy produkty i filtry przy zmianie strony lub po zastosowaniu nowych filtrów
+
   useEffect(() => {
     fetchProducts(currentPage);
     async function loadFilters() {
       try {
         const categoriesData = await fetchCategories();
         const genresData = await fetchGenres();
-        // Jeśli genresData to tablica stringów, przekształcamy ją do obiektów
+
         if (genresData.length > 0 && typeof genresData[0] === "string") {
           const formattedGenres = genresData.map((genre: string, index: number) => ({
             genreId: index + 1,
@@ -144,7 +143,7 @@ const Products = () => {
     loadFilters();
   }, [currentPage, fetchProducts]);
 
-  // Obsługa usuwania produktu
+
   const confirmDeleteProduct = (product: Product) => {
     setDeleteConfirmation({ isOpen: true, product });
   };
@@ -165,7 +164,7 @@ const Products = () => {
     [token]
   );
 
-  // Funkcja wywoływana przy kliknięciu przycisku "Filtruj"
+
   const handleFilter = () => {
     setAppliedSearchTerm(searchTerm);
     setAppliedCategoryFilter(categoryFilter);
@@ -173,7 +172,7 @@ const Products = () => {
     setCurrentPage(1);
   };
 
-  // Stany dla filtrów (selecty)
+
   const [categories, setCategories] = useState<{ categoryId: number; namePl: string }[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
 
@@ -189,10 +188,9 @@ const Products = () => {
     setEditingProduct(product);
     editDisclosure.onOpen();
   }
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Przekazujemy do NavbarProducts również userRole, aby tam ukryć przycisk dodawania produktu, jeśli użytkownik to employee */}
+
       <NavbarProducts
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -204,7 +202,7 @@ const Products = () => {
         genres={genres}
         onOpen={onOpen}
         onFilter={handleFilter}
-        userRole={userRole} // Dodajemy userRole
+        userRole={userRole}
       />
 
       <main className="p-4">
@@ -245,7 +243,7 @@ const Products = () => {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {/* Przycisk podglądu szczegółów – widoczny dla wszystkich */}
+
                   <Button
                     className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex justify-center items-center"
                     onPress={() => {
@@ -256,7 +254,7 @@ const Products = () => {
                     <FaInfoCircle size={20} />
                   </Button>
 
-                  {/* Przycisk edycji – renderowany tylko, gdy rola to ROLE_ADMIN */}
+
                   {userRole === "ROLE_ADMIN" && (
                     <Button
                       className="p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex justify-center items-center"
@@ -266,7 +264,7 @@ const Products = () => {
                     </Button>
                   )}
 
-                  {/* Przycisk usuwania – renderowany tylko, gdy rola to ROLE_ADMIN */}
+
                   {userRole === "ROLE_ADMIN" && (
                     <Button
                       className="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 flex justify-center items-center"
@@ -303,7 +301,8 @@ const Products = () => {
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false} size="5xl" scrollBehavior="outside">
         <ModalContent>
           <ModalBody>
-            <AddProduct />
+            <AddProduct categories={categories}
+              genres={genres} />
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -329,6 +328,8 @@ const Products = () => {
             {editingProduct && (
               <AddProduct
                 initialData={editingProduct}
+                categories={categories}
+                genres={genres}
                 onSubmit={async (data) => {
                   editDisclosure.onOpenChange(false);
                 }}

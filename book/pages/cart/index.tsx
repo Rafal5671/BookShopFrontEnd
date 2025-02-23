@@ -13,18 +13,17 @@ const Cart = () => {
   const router = useRouter();
   const { t } = useTranslation();
 
-  // Funkcja pomocnicza do pobierania ceny jednostkowej – jeśli discountPrice jest ustawione, to ją zwraca,
-  // w przeciwnym razie zwraca standardową cenę
+
   const getUnitPrice = (product: Product): number => {
     return product.discountPrice != null ? product.discountPrice : product.price;
   };
 
-  // Obliczamy łączną cenę po promocji (używając ceny promocyjnej, jeśli jest dostępna)
+
   const totalPrice = cart
     .reduce((total, product) => total + getUnitPrice(product) * product.quantity, 0)
     .toFixed(2);
 
-  // Obliczamy łączną kwotę oszczędności – dla produktów z ustawioną ceną promocyjną
+ 
   const totalSavings = cart
     .reduce((acc, product) => {
       if (product.discountPrice != null) {
@@ -34,7 +33,7 @@ const Cart = () => {
     }, 0)
     .toFixed(2);
 
-  // Obliczamy cenę przed promocją (dla wszystkich produktów, niezależnie czy mają promocję)
+
   const originalTotal = cart
     .reduce((total, product) => total + product.price * product.quantity, 0)
     .toFixed(2);
@@ -50,7 +49,7 @@ const Cart = () => {
     }
   };
 
-  // Obsługuje zmniejszanie ilości
+
   const decreaseQuantity = (id: number) => {
     const product = cart.find((product) => product.bookId === id);
     if (product && product.quantity > 1) {
@@ -58,16 +57,16 @@ const Cart = () => {
     }
   };
 
-  // Funkcja do obsługi zmiany ilości w inpucie
+
   const handleQuantityChange = (id: number, value: string) => {
-    // Pozwól na puste pole lub tylko cyfry
+
     if (value === "" || /^[0-9]*$/.test(value)) {
       const quantity = value === "" ? 1 : Math.min(parseInt(value, 10), 99);
       updateQuantity(id, quantity);
     }
   };
 
-  // Funkcja do obsługi utraty focusa
+
   const handleBlur = (id: number, value: string) => {
     if (value === "") {
       updateQuantity(id, 1);
@@ -77,7 +76,7 @@ const Cart = () => {
     }
   };
 
-  // Sprawdź produkty w koszyku i wyświetl je w konsoli przy renderowaniu
+
   useEffect(() => {
     console.log("Produkty w koszyku:");
     cart.forEach((product) => {
@@ -129,7 +128,6 @@ const Cart = () => {
                     )}
                   </span>
 
-                  {/* Cena całkowita dla danej pozycji i kontrolki ilości */}
                   <div className="flex items-center mt-2 justify-between">
                     <span className="text-lg">
                       {t("totalPrice")}: {(getUnitPrice(product) * product.quantity).toFixed(2)} PLN

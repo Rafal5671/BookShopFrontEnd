@@ -19,7 +19,6 @@ type AuthProviderProps = {
   children: React.ReactNode;
 };
 
-// context/AuthContext.tsx (kontynuacja)
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -62,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             headers: {
               "Content-Type": "application/json",
             },
-            // Przesyłamy obiekt zawierający email
+
             body: JSON.stringify({ email }),
           });
         } catch (error) {
@@ -70,7 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      // Usuwamy tokeny z localStorage
+
       localStorage.removeItem("authToken");
       localStorage.removeItem("userRole");
       localStorage.removeItem("refreshToken");

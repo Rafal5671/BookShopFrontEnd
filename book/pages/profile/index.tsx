@@ -15,7 +15,7 @@ const UserProfile: React.FC = () => {
   const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<boolean>(false);
-  // Funkcje do obsługi modalu
+
   const openDeleteModal = (reviewId: number) => {
     setSelectedReviewId(reviewId);
     setIsModalOpen(true);
@@ -26,7 +26,7 @@ const UserProfile: React.FC = () => {
     content: string;
     rating: number;
     bookTitle: string;
-    bookId:number;
+    bookId: number;
   } | null>(null);
   const [editingContent, setEditingContent] = useState<string>("");
   const [editingRating, setEditingRating] = useState<number>(3);
@@ -49,7 +49,7 @@ const UserProfile: React.FC = () => {
     setDeleting(true);
     try {
       await deleteReviewServer(selectedReviewId);
-      // Po udanym usunięciu, odśwież dane użytkownika
+
       if (userData) {
         setUserData({
           ...userData,
@@ -128,7 +128,7 @@ const UserProfile: React.FC = () => {
   const handleEdit = (reviewId: number) => {
     if (!userData) return;
 
-    // Znajdujemy recenzję do edycji z userData
+    
     const r = userData.reviews.find((rev) => rev.reviewId === reviewId);
     if (!r) return;
 
@@ -144,7 +144,7 @@ const UserProfile: React.FC = () => {
     setEditModalOpen(true);
   };
 
-  // 2) Zamyka modal edycji
+
   const closeEditModal = () => {
     setEditModalOpen(false);
     setEditingReview(null);
@@ -153,7 +153,7 @@ const UserProfile: React.FC = () => {
     setEditError(null);
   };
 
-  // 3) Zapisuje edycję (wysyła PUT do serwera)
+
   const confirmEdit = async () => {
     if (!editingReview) return;
     const token = localStorage.getItem("authToken");
@@ -173,7 +173,7 @@ const UserProfile: React.FC = () => {
         editingContent
       );
 
-      // Lokalne odświeżenie stanu (podmiana recenzji w userData)
+
       if (userData) {
         setUserData({
           ...userData,
@@ -197,7 +197,7 @@ const UserProfile: React.FC = () => {
     }
   };
 
-  // Funkcja pomocnicza do nadawania klas CSS w zależności od statusu zamówienia
+ 
   const getStatusClass = (status: string) => {
     switch (status) {
       case "PENDING":
@@ -364,12 +364,12 @@ const UserProfile: React.FC = () => {
           {editModalOpen && editingReview && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
               <div className="p-6 rounded-lg shadow-lg bg-primary-100 max-w-sm w-full">
-                <h2 className="text-lg font-bold mb-4">Edytuj recenzję</h2>
+                <h2 className="text-lg font-bold mb-4">{t("editReviewTitle")}</h2>
                 <p className="font-semibold mb-2">{editingReview.bookTitle}</p>
 
-                {/* Pole treści */}
+
                 <label className="block mb-2">
-                  Treść recenzji:
+                  {t("reviewContent")}:
                   <textarea
                     className="w-full border rounded px-2 py-1 mt-1"
                     rows={4}
@@ -378,9 +378,8 @@ const UserProfile: React.FC = () => {
                   />
                 </label>
 
-                {/* Pole oceny (rating) */}
                 <label className="block mb-2">
-                  Ocena (1-5):
+                  {t("ratingLabel")}:
                   <input
                     type="number"
                     min={1}
@@ -398,19 +397,20 @@ const UserProfile: React.FC = () => {
                     onClick={closeEditModal}
                     className="px-4 py-2 bg-red-500 rounded text-white"
                   >
-                    Anuluj
+                    {t("cancel")}
                   </button>
                   <button
                     onClick={confirmEdit}
                     disabled={savingEdit}
                     className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
-                    Zapisz
+                    {t("save")}
                   </button>
                 </div>
               </div>
             </div>
           )}
+
         </div>
       </Card>
     </div>

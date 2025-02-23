@@ -4,7 +4,6 @@ import { fetchWithAuth } from "@/auth/apiClient";
 import { PageResponse, Author, Product, Publisher } from "@/types/types";
 
 export async function fetchPublishersServer(): Promise<PageResponse<Publisher>> {
-  // 1) Wywołujemy fetchWithAuth, który ustawi nagłówek Authorization
   const res = await fetchWithAuth(
     "http://localhost:8080/api/admin/publishers?page=0&size=1000",
     {
@@ -22,9 +21,6 @@ export async function fetchPublishersServer(): Promise<PageResponse<Publisher>> 
   return res.json();
 }
 
-/**
- * Pobranie listy autorów z back-endu
- */
 export async function fetchAuthorsServer(): Promise<PageResponse<Author>> {
   const res = await fetchWithAuth(
     "http://localhost:8080/api/admin/authors?page=0&size=10000",
@@ -41,9 +37,7 @@ export async function fetchAuthorsServer(): Promise<PageResponse<Author>> {
   return res.json();
 }
 
-/**
- * Dodanie nowego produktu
- */
+
 export async function createProductServer(requestBody: any) {
   const res = await fetchWithAuth("http://localhost:8080/api/admin/products", {
     method: "POST",
@@ -64,9 +58,7 @@ export async function createProductServer(requestBody: any) {
   return res.json();
 }
 
-/**
- * Aktualizacja istniejącego produktu
- */
+
 export async function updateProductServer(bookId: number, requestBody: any) {
   const res = await fetchWithAuth(`http://localhost:8080/api/admin/products/${bookId}`, {
     method: "PUT",
@@ -86,13 +78,7 @@ export async function updateProductServer(bookId: number, requestBody: any) {
 
   return res.json();
 }
-/**
- * Pobiera listę produktów z backendu.
- * 
- * @param token - JWT lub inny token uwierzytelniający
- * @param page - numer strony (1-based, bo w komponencie używamy 1-based)
- * @param size - liczba produktów na stronę
- */
+
 export async function fetchProductsServer(
   page: number,
   size: number,

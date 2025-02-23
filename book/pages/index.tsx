@@ -5,13 +5,10 @@ import { fetchProducts } from "@/components/server/product/FetchProducts";
 import ImageCarousel from "@/components/client/slider/Carousel";
 import { useTranslation } from "@/hooks/useTranslation";
 
-// Funkcja pomocnicza do pobierania książek według typu
-
 export async function getServerSideProps() {
   try {
-    // Pobieramy 12 książek dla każdej sekcji
+
     const novelties = await fetchProducts();
-    console.log(novelties);
     const bestsellers = await fetchProducts();
     const recommended = await fetchProducts();
 
@@ -50,22 +47,22 @@ export default function IndexPage({ novelties, bestsellers, recommended }: Index
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {/* Dodano klasę px-4 dla poziomego paddingu */}
+
       <main className="min-h-screen container mx-auto py-8 px-4">
         <ImageCarousel />
-        {/* Sekcja nowości */}
+
         <section className="my-8">
           <h2 className="text-2xl font-bold mb-4">{t("newhome")}</h2>
           <ProductList products={novelties} />
         </section>
 
-        {/* Sekcja bestsellerów */}
+
         <section className="my-8">
           <h2 className="text-2xl font-bold mb-4">{t("best")}</h2>
           <ProductList products={bestsellers} />
         </section>
 
-        {/* Sekcja polecanych */}
+
         <section className="my-8">
           <h2 className="text-2xl font-bold mb-4">{t("recom")}</h2>
           <ProductList products={recommended} />

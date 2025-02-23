@@ -9,8 +9,8 @@ import {
 interface NavbarAuthorsProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  onOpen: () => void;   // Funkcja otwierająca modal dodawania autora
-  onSearch: () => void; // Funkcja wywoływana po naciśnięciu Enter
+  onOpen: () => void; 
+  onSearch: () => void; 
 }
 
 const NavbarAuthors: React.FC<NavbarAuthorsProps> = ({

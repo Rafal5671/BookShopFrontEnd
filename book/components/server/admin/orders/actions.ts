@@ -5,14 +5,7 @@ import { OrderAdmin,PageResponse } from "@/types/types";
 
 export type SortOption = "dateAsc" | "dateDesc" | "amountAsc" | "amountDesc";
 
-/**
- * Pobiera listę zamówień z backendu.
- *
- * @param token – JWT lub inny token autoryzacyjny
- * @param page – numer strony (1-based; dla backendu konwertujemy na 0-based)
- * @param rowsPerPage – liczba zamówień na stronę
- * @param sortOption – jak sortujemy (dateAsc, dateDesc, itp.)
- */
+
 export async function fetchOrdersServer(
   page: number,
   rowsPerPage: number,
@@ -72,13 +65,7 @@ export async function fetchOrdersServer(
   return response.json();
 }
 
-/**
- * Aktualizuje status zamówienia.
- *
- * @param token – JWT lub inny token autoryzacyjny
- * @param orderId – ID zamówienia
- * @param newStatus – status w formie, której oczekuje backend (np. "PAID", "SHIPPED", ...)
- */
+
 export async function updateOrderStatusServer(
   orderId: string,
   newStatus: string

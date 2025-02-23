@@ -13,7 +13,7 @@ import { withAuth } from "../server/auth/withAuth";
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [currentPage, setCurrentPage] = useState(1); // 1-based
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [deleteConfirmation, setDeleteConfirmation] = useState({
     isOpen: false,

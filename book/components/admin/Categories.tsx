@@ -19,14 +19,14 @@ export type Category = {
     Id: number;
     nameEn: string;
     namePl: string;
-    createdAt: string; // ISO string
+    createdAt: string; 
   };
   
   export interface PageResponse<T> {
     content: T[];
     totalPages: number;
     totalElements: number;
-    number: number; // current page (0-based)
+    number: number; 
     size: number;
   }
 const Categories = () => {
@@ -40,12 +40,10 @@ const Categories = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // NextUI stuff
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const detailsDisclosure = useDisclosure();
   const editDisclosure = useDisclosure();
 
-  // Dodatkowe stany do obsługi modali
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     category: Category | null;
@@ -54,13 +52,12 @@ const Categories = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  // Liczba kategorii na stronę
+
   const categoriesPerPage = 10;
 
-  // Autoryzacja
   const { token, loading: authLoading } = useAuth();
 
-  // Dla operacji asynchronicznych z server actions:
+
   const [isPending, startTransition] = useTransition();
 
   // ----------------------------------------------

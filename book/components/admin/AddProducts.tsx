@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState, useTransition } from "react";
 import {
   Button,
@@ -6,12 +8,25 @@ import {
   Textarea,
   Spinner,
   Chip,
+  Select,
+  Autocomplete,
+  AutocompleteItem,
+  SelectItem,
 } from "@nextui-org/react";
-import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { useAuth } from "@/hooks/useAuth";
-import { createProductServer, fetchAuthorsServer, fetchPublishersServer, updateProductServer } from "../server/admin/products/actions";
+import {
+  createProductServer,
+  fetchAuthorsServer,
+  fetchPublishersServer,
+  updateProductServer,
+} from "../server/admin/products/actions";
+import { Genre } from "@/types/types";
 
-/** Typy */
+interface Category {
+  categoryId: number;
+  namePl: string;
+}
+
 interface Publisher {
   publisherId: number;
   name: string;
@@ -21,14 +36,6 @@ interface Author {
   authorId: number;
   firstName: string;
   lastName: string;
-}
-
-interface PagedResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number: number; // numer aktualnej strony (0-based)
-  size: number;
 }
 
 type Product = {
@@ -49,23 +56,25 @@ type Product = {
   authors: Author[];
   originalTitle: string;
   language: string;
-  category?: string; // Filtry
+  category?: string;
   species?: string;
   genres?: string[];
   stock?: number;
 };
 
-interface OptionType {
-  label: string;
-  value: number;
-}
-
 interface AddProductProps {
   initialData?: Product;
-  onSubmit: (data: any) => void; // Dostosuj typ w zależności od potrzeb
+  onSubmit: (data: any) => void;
+  categories: Category[];
+  genres: Genre[];
 }
 
-export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
+export default function AddProduct({
+  initialData,
+  onSubmit,
+  categories,
+  genres,
+}: AddProductProps) {
   const [formData, setFormData] = useState({
     titlePL: "",
     titleEN: "",
@@ -77,34 +86,31 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     salePrice: "",
     publisherId: "",
     authorsIds: [] as number[],
+    category: "",
+    genres: [] as string[],
+    stockQuantity: "",
+    pagesCount: "",
+    coverType: "",
   });
 
-  // Stan list:
   const [allPublishers, setAllPublishers] = useState<Publisher[]>([]);
   const [allAuthors, setAllAuthors] = useState<Author[]>([]);
-
-  // Stan ładowania:
   const [loadingPublishers, setLoadingPublishers] = useState(true);
   const [loadingAuthors, setLoadingAuthors] = useState(true);
 
   const [selectedAuthors, setSelectedAuthors] = useState<Author[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [selectedPublisherName, setSelectedPublisherName] = useState("");
 
-  // Import z hooka autoryzacji
   const { token } = useAuth();
-
-  // Reakcyjna obsługa transition (async operacje):
   const [isPending, startTransition] = useTransition();
 
-  // ----------------------------------------------------------------
-  // 1. Wczytanie initialData (edycja produktu)
-  // ----------------------------------------------------------------
   useEffect(() => {
     if (!initialData) return;
 
-    // Formatowanie daty do YYYY-MM-DD
     const formattedDate = initialData.releaseDate
       ? initialData.releaseDate.split("T")[0]
       : "";
@@ -117,11 +123,14 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
       releaseDate: formattedDate,
       originalTitle: initialData.originalTitle || "",
       price: initialData.price ? initialData.price.toString() : "",
-      salePrice: initialData.discountPrice
-        ? initialData.discountPrice.toString()
-        : "",
+      salePrice: initialData.discountPrice ? initialData.discountPrice.toString() : "",
       publisherId: initialData.publisher?.publisherId?.toString() || "",
       authorsIds: initialData.authors?.map((a) => a.authorId) || [],
+      category: initialData.category || "",
+      genres:[],
+      stockQuantity: initialData.stock ? initialData.stock.toString() : "",
+      pagesCount: initialData.pagesCount ? initialData.pagesCount.toString() : "",
+      coverType: initialData.coverType || "HARD",
     });
 
     setSelectedAuthors(initialData.authors || []);
@@ -129,16 +138,11 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     setSelectedPublisherName(initialData.publisher?.name || "");
   }, [initialData]);
 
-  // ----------------------------------------------------------------
-  // 2. Pobranie wydawnictw z użyciem Server Action
-  // ----------------------------------------------------------------
   useEffect(() => {
     if (!token) {
       console.error("Brak tokenu uwierzytelniającego (publishers).");
       return;
     }
-
-    // startTransition => nie blokuje interfejsu w czasie fetchu
     startTransition(async () => {
       setLoadingPublishers(true);
       try {
@@ -153,15 +157,11 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     });
   }, [token]);
 
-  // ----------------------------------------------------------------
-  // 3. Pobranie autorów z użyciem Server Action
-  // ----------------------------------------------------------------
   useEffect(() => {
     if (!token) {
       console.error("Brak tokenu uwierzytelniającego (authors).");
       return;
     }
-
     startTransition(async () => {
       setLoadingAuthors(true);
       try {
@@ -176,10 +176,9 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     });
   }, [token]);
 
-  // ----------------------------------------------------------------
-  // 4. Obsługa zmian w formularzu
-  // ----------------------------------------------------------------
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -187,9 +186,6 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     }));
   };
 
-  // ----------------------------------------------------------------
-  // 5. Wybór wydawnictwa (Autocomplete)
-  // ----------------------------------------------------------------
   const handlePublisherSelect = (selectedLabel: string) => {
     const pub = allPublishers.find((p) => p.name === selectedLabel);
     if (pub) {
@@ -200,15 +196,11 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     }
   };
 
-  // ----------------------------------------------------------------
-  // 6. Autorzy
-  // ----------------------------------------------------------------
   const handleAuthorSelect = (selectedLabel: string) => {
     const author = allAuthors.find(
       (a) => `${a.firstName} ${a.lastName}` === selectedLabel
     );
     if (author && !selectedAuthors.some((a) => a.authorId === author.authorId)) {
-      // Dodaj do stanu
       setSelectedAuthors((prev) => [...prev, author]);
       setFormData((prev) => ({
         ...prev,
@@ -225,9 +217,26 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     }));
   };
 
-  // ----------------------------------------------------------------
-  // 7. Upload pliku (wciąż w kodzie klienckim)
-  // ----------------------------------------------------------------
+  const handleGenreSelect = (selectedLabel: string) => {
+    if (!selectedLabel || selectedLabel.trim() === "") return;
+    const genre = genres.find((g) => g.name === selectedLabel);
+    if (genre && !selectedGenres.some((g) => g.genreId === genre.genreId)) {
+      setSelectedGenres((prev) => [...prev, genre]);
+      setFormData((prev) => ({
+        ...prev,
+        genres: [...prev.genres, genre.genreId.toString()],
+      }));
+    }
+  };
+
+  const handleGenreRemove = (genreId: number) => {
+    setSelectedGenres((prev) => prev.filter((g) => g.genreId !== genreId));
+    setFormData((prev) => ({
+      ...prev,
+      genres: prev.genres.filter((id) => Number(id) !== genreId),
+    }));
+  };
+
   const uploadImage = async (file: File): Promise<string> => {
     const fd = new FormData();
     fd.append("image", file);
@@ -244,10 +253,6 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     const data = await response.json();
     return data.url;
   };
-
-  // ----------------------------------------------------------------
-  // 8. Submit formularza => create/ update
-  // ----------------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -265,34 +270,34 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
     }
 
     try {
-      let uploadedImageUrl = imageUrl; // jeśli już mamy link, zostawiamy
+      let uploadedImageUrl = imageUrl;
       if (selectedFile) {
         uploadedImageUrl = await uploadImage(selectedFile);
         setImageUrl(uploadedImageUrl);
       }
+      
+      const cleanedGenres = formData.genres.filter((g) => g != null && g !== "");
 
       const requestBody = {
         ...formData,
         publisherId: Number(formData.publisherId),
         authorsIds: formData.authorsIds,
         imageUrl: uploadedImageUrl,
+        category: Number(formData.category),
+        genres: cleanedGenres.map(Number),
+        stockQuantity: Number(formData.stockQuantity),
+        pagesCount: Number(formData.pagesCount),
+        coverType: formData.coverType,
       };
-
+      console.log(requestBody);
       startTransition(async () => {
         let updatedData;
-
         if (initialData) {
-          // Aktualizacja istniejącego produktu (PUT)
-          updatedData = await updateProductServer(
-            initialData.bookId,
-            requestBody
-          );
+          updatedData = await updateProductServer(initialData.bookId, requestBody);
           alert("Produkt został zaktualizowany!");
         } else {
-          // Tworzenie nowego produktu (POST)
           updatedData = await createProductServer(requestBody);
           alert("Produkt został dodany!");
-          // Resetuj formularz
           setFormData({
             titlePL: "",
             titleEN: "",
@@ -304,14 +309,18 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
             salePrice: "",
             publisherId: "",
             authorsIds: [],
+            category: "",
+            genres: [],
+            coverType: "",
+            stockQuantity: "",
+            pagesCount: "",
           });
           setSelectedAuthors([]);
+          setSelectedGenres([]);
           setSelectedFile(null);
           setImageUrl("");
           setSelectedPublisherName("");
         }
-
-        // Wywołaj callback, jeśli jest
         onSubmit?.(updatedData);
       });
     } catch (error) {
@@ -320,16 +329,11 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
         error
       );
       alert(
-        `Wystąpił błąd podczas ${
-          initialData ? "aktualizacji" : "dodawania"
-        } produktu.`
+        `Wystąpił błąd podczas ${initialData ? "aktualizacji" : "dodawania"} produktu.`
       );
     }
   };
 
-  // ----------------------------------------------------------------
-  // Gotowe – render
-  // ----------------------------------------------------------------
   const publisherOptions = allPublishers.map((pub) => ({
     label: pub.name,
     value: pub.publisherId.toString(),
@@ -338,7 +342,6 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
   const authorOptionsLabels = allAuthors.map(
     (author) => `${author.firstName} ${author.lastName}`
   );
-
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -447,7 +450,6 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
               </Autocomplete>
             )}
           </div>
-
           {selectedPublisherName && (
             <div className="mt-2">
               <Chip>{selectedPublisherName}</Chip>
@@ -484,6 +486,92 @@ export default function AddProduct({ initialData, onSubmit }: AddProductProps) {
               </>
             )}
           </div>
+
+          {/* Kategoria (NextUI Select) */}
+          <div>
+            <Select
+              label="Kategoria"
+              placeholder="Wybierz kategorię"
+              selectedKeys={new Set([formData.category])}
+              onSelectionChange={(keys) => {
+                const selectedKey = Array.from(keys)[0];
+                setFormData((prev) => ({ ...prev, category: selectedKey as string }));
+              }}
+            >
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id.toString()}>
+                  {cat.namePl}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
+
+          {/* Gatunki (Autocomplete + Chipy) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Gatunki
+            </label>
+            <Autocomplete placeholder="Wpisz nazwę gatunku...">
+              {genres.map((genre) => (
+                <AutocompleteItem
+                  key={genre.genreId}
+                  value={genre.name}
+                  onPress={() => handleGenreSelect(genre.name)}
+                >
+                  {genre.name}
+                </AutocompleteItem>
+              ))}
+            </Autocomplete>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {selectedGenres.map((genre) => (
+                <Chip key={genre.genreId} onClose={() => handleGenreRemove(genre.genreId)}>
+                  {genre.name}
+                </Chip>
+              ))}
+            </div>
+          </div>
+
+          {/* Okładka (NextUI Select) */}
+          <Select
+            label="Okładka"
+            placeholder="Wybierz typ okładki"
+            selectedKeys={new Set([formData.coverType])}
+            onSelectionChange={(keys) => {
+              const selectedKey = Array.from(keys)[0];
+              setFormData((prev) => ({ ...prev, coverType: selectedKey as string }));
+            }}
+          >
+            <SelectItem key="HARD" value="HARD">
+              Twarda
+            </SelectItem>
+            <SelectItem key="SOFT" value="SOFT">
+              Miękka
+            </SelectItem>
+          </Select>
+
+          {/* Ilość w magazynie */}
+          <Input
+            label="Ilość w magazynie"
+            type="number"
+            name="stockQuantity"
+            value={formData.stockQuantity}
+            onChange={handleChange}
+            fullWidth
+            required
+            min="0"
+          />
+
+          {/* Ilość stron */}
+          <Input
+            label="Ilość stron"
+            type="number"
+            name="pagesCount"
+            value={formData.pagesCount}
+            onChange={handleChange}
+            fullWidth
+            required
+            min="1"
+          />
 
           {/* Cena */}
           <Input

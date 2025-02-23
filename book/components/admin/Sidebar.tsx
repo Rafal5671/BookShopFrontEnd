@@ -12,9 +12,9 @@ import {
   FaTags,
   FaKey,
 } from "react-icons/fa";
-import { AuthContext } from "@/context/AuthContext"; // Upewnij się, że ścieżka jest poprawna
+import { AuthContext } from "@/context/AuthContext";
 
-// Definicja typów dla sekcji i elementów menu
+
 export type SectionType =
   | "dashboard"
   | "orders"
@@ -42,7 +42,7 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, setActiveSection }) => {
   const authContext = useContext(AuthContext);
   const userRole = authContext?.userRole;
 
-  // Lista elementów menu z przypisanymi rolami oraz ikonami
+
   const menuItems: MenuItem[] = [
     { key: "dashboard", label: "Dashboard", roles: ["ROLE_ADMIN", "ROLE_EMPLOYEE"], icon: FaHome },
     { key: "orders", label: "Zamówienia", roles: ["ROLE_ADMIN", "ROLE_EMPLOYEE"], icon: FaShoppingCart },
@@ -62,7 +62,7 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, setActiveSection }) => {
         p-5 pt-8 duration-300 relative
       `}
     >
-      {/* Przycisk do zwijania/rozwijania sidebaru */}
+
       <button
         className="absolute -right-3 top-9 w-7 h-7 rounded-full bg-white border-2 border-blue-600 flex items-center justify-center"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -92,7 +92,7 @@ const Sidebar: FC<SidebarProps> = ({ activeSection, setActiveSection }) => {
       {/* Lista linków */}
       <ul className="pt-6">
         {menuItems.map((item) => {
-          // Jeśli użytkownik nie jest zalogowany lub nie ma odpowiedniej roli, nie renderujemy pozycji menu
+
           if (!userRole || !item.roles.includes(userRole)) {
             return null;
           }

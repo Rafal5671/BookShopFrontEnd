@@ -8,11 +8,11 @@ import { Category,Genre } from '@/types/types';
 
 
 const categoryHeaders = [
-    { id: 1, label: "GATUNKI KSIĄŻEK" },
-    { id: 2, label: "PRZEDMIOTY SZKOLNE" },
-    { id: 3, label: "ARTYKUŁY BIUROWE" },
-    { id: 4, label: "POPULARNE GATUNKI" },
-    { id: 5, label: "KLASYKA LITERATURY" },
+    { id: 1, key: "category_header_1" },
+    { id: 2, key: "category_header_2" },
+    { id: 3, key: "category_header_3" },
+    { id: 4, key: "category_header_4" },
+    { id: 5, key: "category_header_5" },
 ];
 const MegaMenu: FC = () => {
     const [open, setOpen] = useState(false);
@@ -92,6 +92,18 @@ const MegaMenu: FC = () => {
         }
         return chunks;
     };
+    const handleDiscountClick = () => {
+        router.push({
+          pathname: "/search",
+          query: { onSale: "true" },
+        });
+      };
+      const handleNewClick = () => {
+        router.push({
+          pathname: "/search",
+          query: { new: "true" },
+        });
+      };
     const handleGenreClick = (genreId: number) => {
         router.push(`/search?genreId=${genreId}`);
         setOpen(false);
@@ -102,7 +114,7 @@ const MegaMenu: FC = () => {
     return (
         <div className="bg-primary-100 relative">
             <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
-                {/* Left Column: "All Categories" Button */}
+
                 <div className="relative">
                     <Button
                         onPress={toggleMenu}
@@ -142,16 +154,16 @@ const MegaMenu: FC = () => {
                                     }
                                 </div>
 
-                                {/* Genres Submenu */}
+
                                 {activeCatIndex !== null && (
                                     <div className="absolute left-full z-50 top-0 ml-2 min-w-[600px] max-w-[800px] bg-white text-black p-6 shadow-lg rounded-lg transition-all duration-300">
                                         {loadingGenres && <p className="text-sm text-gray-600">{t("loadingGenres")}...</p>}
                                         {error && <p className="text-sm text-red-600">{t("error")}: {error}</p>}
                                         {!loadingGenres && genres.length > 0 && (
                                             <>
-                                                {/* Dynamic Header */}
+                                            
                                                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                                    {categoryHeaders[activeCatIndex]?.label || "GATUNKI"}
+                                                    {t(categoryHeaders[activeCatIndex]?.key)}
                                                 </h3>
                                                 <div className="grid grid-cols-3 gap-4">
                                                     {chunkGenres(genres, 17).map((chunk, colIndex) => (
@@ -177,10 +189,10 @@ const MegaMenu: FC = () => {
                     )}
                 </div>
 
-                {/* Right Column: Example Links */}
+ 
                 <ul className="flex items-center space-x-6 text-sm font-medium">
-                    <li><Button>{t("discount")}</Button></li>
-                    <li><Button>{t("new")}</Button></li>
+                    <li><Button onPress={handleDiscountClick}>{t("discount")}</Button></li>
+                    <li><Button onPress={handleNewClick}>{t("new")}</Button></li>
                 </ul>
             </nav>
         </div>

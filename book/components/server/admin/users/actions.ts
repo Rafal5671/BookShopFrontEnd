@@ -11,18 +11,13 @@ export interface PageResponse<T> {
   content: T[];
   totalPages: number;
   totalElements: number;
-  number: number; // numer aktualnej strony (0-based)
+  number: number; 
   size: number;
 }
 
 const API_URL = "http://localhost:8080/api/admin";
 
-/**
- * Pobiera użytkowników z podanej strony.
- * @param page - numer strony (1-based)
- * @param pageSize - liczba rekordów na stronę (domyślnie 12)
- * @returns obiekt PageResponse z listą użytkowników
- */
+
 export async function fetchUsers(
   page: number,
   pageSize: number = 12
@@ -46,11 +41,7 @@ export async function fetchUsers(
   return data;
 }
 
-/**
- * Usuwa użytkownika o podanym identyfikatorze.
- * @param userId - identyfikator użytkownika
- * @returns wynik operacji w formie JSON
- */
+
 export async function deleteUser(userId: number): Promise<any> {
   const response = await fetchWithAuth(`${API_URL}/users/${userId}`, {
     method: "DELETE",

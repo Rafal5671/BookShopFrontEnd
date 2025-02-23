@@ -20,13 +20,13 @@ import { withAuth } from "../server/auth/withAuth";
 
 const Publishers: React.FC = () => {
   const [publishers, setPublishers] = useState<Publisher[]>([]);
-  const [currentPage, setCurrentPage] = useState(1); // 1-based
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 12;
 
-  // Stan wyszukiwania wpisany przez użytkownika
+
   const [searchTerm, setSearchTerm] = useState("");
-  // Stan wyszukiwania używany do zapytań – aktualizowany dopiero po naciśnięciu Enter
+
   const [appliedSearchTerm, setAppliedSearchTerm] = useState("");
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -39,17 +39,17 @@ const Publishers: React.FC = () => {
 
   const { token } = useAuth();
 
-  // Dla operacji asynchronicznych (server actions)
+
   const [isPending, startTransition] = useTransition();
 
-  // Funkcja pobierająca wydawców – wykorzystuje appliedSearchTerm
+
   const fetchPublishers = useCallback(
     async (page: number) => {
       if (!token) return;
 
       startTransition(async () => {
         try {
-          // Zakładamy, że fetchPublishersServer został rozszerzony o opcjonalny parametr query
+
           const data = await fetchPublishersServer(page, pageSize, appliedSearchTerm);
           setPublishers(data.content);
           setTotalPages(data.totalPages);
@@ -61,18 +61,18 @@ const Publishers: React.FC = () => {
     [token, appliedSearchTerm]
   );
 
-  // Efekt pobierający wydawców przy zmianie currentPage lub appliedSearchTerm
+
   useEffect(() => {
     fetchPublishers(currentPage);
   }, [currentPage, fetchPublishers]);
 
-  // Funkcja wywoływana po naciśnięciu Enter – resetuje currentPage oraz ustawia appliedSearchTerm
+
   const handleSearch = () => {
     setCurrentPage(1);
     setAppliedSearchTerm(searchTerm);
   };
 
-  // Funkcja do usuwania wydawcy
+
   const confirmDeletePublisher = (publisher: Publisher) => {
     setDeleteConfirmation({ isOpen: true, publisher });
   };
@@ -149,7 +149,7 @@ const Publishers: React.FC = () => {
         )}
       </main>
 
-      {/* Modal potwierdzenia usunięcia */}
+
       <Modal
         isOpen={deleteConfirmation.isOpen}
         onOpenChange={() =>
@@ -186,7 +186,7 @@ const Publishers: React.FC = () => {
         </ModalContent>
       </Modal>
 
-      {/* Modal błędu */}
+
       <Modal
         isOpen={isErrorModalOpen}
         onOpenChange={() => setIsErrorModalOpen(false)}
@@ -205,7 +205,7 @@ const Publishers: React.FC = () => {
         </ModalContent>
       </Modal>
 
-      {/* Modal dodawania wydawcy */}
+
       <Modal
         isOpen={isAddModalOpen}
         onOpenChange={() => setIsAddModalOpen(false)}
@@ -216,7 +216,7 @@ const Publishers: React.FC = () => {
           <ModalBody>
             <AddPublisher
               onPublisherAdded={() => {
-                // Odświeżamy listę wydawców po dodaniu i zamykamy modal
+
                 fetchPublishers(currentPage);
                 setIsAddModalOpen(false);
               }}

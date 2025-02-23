@@ -15,7 +15,6 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isAdminRoute = router.pathname.startsWith("/admin");
 
-  // Jeśli to /admin -> używamy AdminLayout, w przeciwnym razie -> Layout
   const LayoutToUse = isAdminRoute ? AdminLayout : Layout;
 
   return (

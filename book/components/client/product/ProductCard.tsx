@@ -20,7 +20,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const { t } = useTranslation();
   const truncateText = (text: string | null | undefined, maxLength: number) => {
-    if (!text) return ""; // Return an empty string if text is null or undefined
+    if (!text) return "";
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
 
@@ -45,14 +45,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
       )}
       <CardHeader
-        className="flex justify-center items-center h-64 mt-4" // Increased height
+        className="flex justify-center items-center h-64 mt-4"
         onClick={navigateToProductPage}
       >
         <Image
           className="w-[250px] h-[250px] object-contain transition-transform duration-300 hover:scale-110"
           src={imgSrc}
           alt={product.title}
-          // Jeśli wystąpi błąd przy ładowaniu obrazu, ustawiamy obraz zastępczy
           onError={() => {
             if (imgSrc !== "/book-placeholder.png") {
               setImgSrc("/book-placeholder.png");

@@ -1,5 +1,3 @@
-// components/client/product/ReviewForm.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";

@@ -46,7 +46,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
   const { t } = useTranslation();
   const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
-  // Funkcja do formatowania daty
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, "0");
@@ -55,7 +55,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     return `${day}.${month}.${year}`;
   };
 
-  // Wyświetlanie gwiazdek (1-5)
+
   const renderStars = (rating: number) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -70,7 +70,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     return stars;
   };
 
-  // Sprawdzenie, czy użytkownik jest zalogowany
+
   useEffect(() => {
     if (token) {
       setIsLoggedIn(true);
@@ -79,7 +79,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     }
   }, [token]);
 
-  // Pobieramy recenzję zalogowanego użytkownika (jeśli istnieje)
+
   const refreshUserReview = useCallback(async () => {
     if (!token) return;
     try {
@@ -95,7 +95,7 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     }
   }, [product.bookId, token]);
 
-  // Pobieramy listę wszystkich recenzji
+
   const fetchReviewsList = useCallback(async () => {
     try {
       const fetchedReviews = await fetchAllReviews(product.bookId.toString());
@@ -106,13 +106,13 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     }
   }, [product.bookId]);
 
-  // Przy montowaniu od razu pobierz recenzję usera + listę recenzji
+
   useEffect(() => {
     refreshUserReview();
     fetchReviewsList();
   }, [refreshUserReview, fetchReviewsList]);
 
-  // Funkcja do usunięcia recenzji
+
   const handleDeleteReview = async () => {
     if (!userReview || !token) return;
     try {
@@ -123,15 +123,15 @@ const ProductClient: React.FC<ProductClientProps> = ({ product }) => {
     }
   };
 
-  // Funkcja do dodania lub aktualizacji recenzji
+ 
   const handleAddOrUpdateReview = () => {
     fetchReviewsList();
     refreshUserReview();
   };
   const { addToCart } = useCart();
-  // Funkcja do dodania produktu do koszyka
+
   const handleAddToCart = () => {
-    // Implementacja dodawania do koszyka
+
     addToCart({
       ...product, quantity: 1
     });

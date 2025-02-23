@@ -39,7 +39,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
     maxPrice,
   ]);
 
-  // Nowy stan do wyszukiwania autorów
+
   const [authorSearchTerm, setAuthorSearchTerm] = useState<string>("");
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const SidebarFilters: React.FC<SidebarFiltersProps> = ({
     onApplyFilters(defaultFilters);
   };
 
-  // Filtrowanie autorów na podstawie wpisanego tekstu
+
   const filteredAuthors = authors.filter((author) => {
     const fullName = `${author.firstName} ${author.lastName}`.toLowerCase();
     return fullName.includes(authorSearchTerm.toLowerCase());

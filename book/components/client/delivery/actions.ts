@@ -2,13 +2,9 @@
 
 import { fetchWithAuth } from "@/auth/apiClient";
 
-/**
- * Tworzy zamówienie w backendzie.
- * 
- * @param orderData - dane zamówienia (items, address, amount)
- */
+
 export async function createOrderServer(orderData: any) {
-  // Używamy fetchWithAuth, który sam dołączy token z localStorage
+
   const response = await fetchWithAuth("http://localhost:8080/api/orders", {
     method: "POST",
     headers: {
@@ -22,15 +18,12 @@ export async function createOrderServer(orderData: any) {
     throw new Error(errorText || "Nieznany błąd podczas składania zamówienia");
   }
 
-  // Zwracamy np. potwierdzenie zamówienia
+
   return response.json();
 }
 
-/**
- * Pobiera dane użytkownika (opcjonalne).
- */
 export async function fetchCustomerDataServer() {
-  // Używamy fetchWithAuth, który dołączy token z localStorage
+
   const response = await fetchWithAuth("http://localhost:8080/api/customers/me", {
     method: "GET",
   });
