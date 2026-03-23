@@ -1,2 +1,2 @@
-Część frontendowa skepu z książkami.
+Część frontendowa sklepu z książkami.
 Framework: Next.js
