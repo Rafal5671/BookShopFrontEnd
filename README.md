@@ -13,14 +13,15 @@
 ![Language](https://img.shields.io/badge/language-TypeScript-blue)
 ![Backend](https://img.shields.io/badge/backend-Spring%20Boot-green)
 ![Database](https://img.shields.io/badge/database-PostgreSQL-blue)
+![Payment](https://img.shields.io/badge/payment-Stripe-purple)
 
 ---
 
 ## Description
 
-BookShopFrontEnd is the frontend of an online book store with a modern, responsive interface built using **Next.js**, **TypeScript**, **Hero UI**, and **Tailwind CSS**. It includes a **dashboard for administrators**, user **roles management**, and authentication using **JSON Web Tokens (JWT)**. The backend is powered by **Spring Boot** and stores data in **PostgreSQL**. Users can browse books, view details, and interact with a clean UI, while admins can manage content and monitor the store.
+BookShopFrontEnd is the frontend of an online book store with a modern, responsive interface built using **Next.js**, **TypeScript**, **Hero UI**, and **Tailwind CSS**. It includes a **dashboard for administrators**, user **roles management**, and authentication using **JSON Web Tokens (JWT)**. The backend is powered by **Spring Boot** and stores data in **PostgreSQL**. The app integrates **Stripe** for secure payment processing. Users can browse books, view details, make purchases, and interact with a clean UI, while admins can manage content and monitor the store.
 
-This project demonstrates **full-stack development**, secure user authentication, role-based access control, modern UI practices, and integration with a relational database.
+This project demonstrates **full-stack development**, secure user authentication, role-based access control, modern UI practices, integration with a relational database, and online payment processing.
 
 ---
 
@@ -35,6 +36,7 @@ This project demonstrates **full-stack development**, secure user authentication
 * Server-side rendering (SSR) for SEO and performance
 * Backend APIs powered by Spring Boot
 * Integration with PostgreSQL database
+* Online payment integration using Stripe
 
 ---
 
@@ -45,6 +47,7 @@ This project demonstrates **full-stack development**, secure user authentication
 * **Authentication & Security:** JSON Web Tokens (JWT)
 * **Backend:** Spring Boot (Java) [Backend repo](https://github.com/Rafal5671/BookshopBackEnd.git)
 * **Database:** PostgreSQL
+* **Payment Processing:** Stripe
 * **State Management:** React context/hooks
 * **SSR:** Server-side rendering for SEO and performance
 
