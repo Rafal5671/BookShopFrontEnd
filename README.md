@@ -1,6 +1,6 @@
 # BookShopFrontEnd
 
-> Frontend application for an online book store, built with Next.js, TypeScript, Hero UI, and Tailwind CSS.
+> Frontend application for an online book store, built with Next.js, TypeScript, Hero UI, and Tailwind CSS. Backend powered by Spring Boot with PostgreSQL. Backend repository is available [here](https://github.com/Rafal5671/BookshopBackEnd.git).
 
 ---
 
@@ -11,14 +11,16 @@
 ![UI Framework](https://img.shields.io/badge/UI-Hero%20UI-purple)
 ![Styling](https://img.shields.io/badge/Styling-Tailwind%20CSS-blue)
 ![Language](https://img.shields.io/badge/language-TypeScript-blue)
+![Backend](https://img.shields.io/badge/backend-Spring%20Boot-green)
+![Database](https://img.shields.io/badge/database-PostgreSQL-blue)
 
 ---
 
 ## Description
 
-BookShopFrontEnd is the frontend of an online book store with a modern, responsive interface built using **Next.js**, **TypeScript**, **Hero UI**, and **Tailwind CSS**. It includes a **dashboard for administrators**, user **roles management**, and authentication using **JSON Web Tokens (JWT)**. The backend uses **PostgreSQL** for data storage. The application allows users to browse books, view details, and interact with a clean UI, while admins can manage content and monitor the store.
+BookShopFrontEnd is the frontend of an online book store with a modern, responsive interface built using **Next.js**, **TypeScript**, **Hero UI**, and **Tailwind CSS**. It includes a **dashboard for administrators**, user **roles management**, and authentication using **JSON Web Tokens (JWT)**. The backend is powered by **Spring Boot** and stores data in **PostgreSQL**. Users can browse books, view details, and interact with a clean UI, while admins can manage content and monitor the store.
 
-This project demonstrates **full-featured frontend development**, secure user authentication, role-based access control, modern UI practices, and integration with a relational database.
+This project demonstrates **full-stack development**, secure user authentication, role-based access control, modern UI practices, and integration with a relational database.
 
 ---
 
@@ -31,7 +33,8 @@ This project demonstrates **full-featured frontend development**, secure user au
 * User authentication using JWT
 * Component-based architecture with Next.js and TypeScript
 * Server-side rendering (SSR) for SEO and performance
-* Integration with PostgreSQL backend
+* Backend APIs powered by Spring Boot
+* Integration with PostgreSQL database
 
 ---
 
@@ -40,7 +43,8 @@ This project demonstrates **full-featured frontend development**, secure user au
 * **Frontend:** Next.js, React, TypeScript
 * **UI Frameworks:** Hero UI, Tailwind CSS
 * **Authentication & Security:** JSON Web Tokens (JWT)
-* **Backend Database:** PostgreSQL
+* **Backend:** Spring Boot (Java) [Backend repo](https://github.com/Rafal5671/BookshopBackEnd.git)
+* **Database:** PostgreSQL
 * **State Management:** React context/hooks
 * **SSR:** Server-side rendering for SEO and performance
 
