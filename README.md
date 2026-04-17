@@ -52,3 +52,8 @@ This project demonstrates **full-stack development**, secure user authentication
 * **SSR:** Server-side rendering for SEO and performance
 
 ---
+## Example Screenshots 
+<img width="1920" height="913" alt="Screenshot 2026-04-17 at 19-38-35 Online Bookstore" src="https://github.com/user-attachments/assets/ac7ebcf9-d8df-4e5d-a632-bafc0ccad713" />
+<img width="1920" height="913" alt="Screenshot 2026-04-17 at 19-39-13 " src="https://github.com/user-attachments/assets/729d1427-659b-4f72-94d3-2399b564f3b7" />
+<img width="1920" height="913" alt="Screenshot 2026-04-17 at 19-43-28 " src="https://github.com/user-attachments/assets/78f9777b-f993-4f37-a055-9ac593220ba5" />
+
